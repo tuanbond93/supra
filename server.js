@@ -363,20 +363,21 @@ app.post('/api/telegram-webhook', async (req, res) => {
       const emailLabel = message.from.username ? `@${message.from.username}` : 'Telegram User';
       historyManager.recordUploadLog(`Telegram: ${emailLabel}`, doc.file_name, 'bot', dateStr);
 
-      // 5. Send success message
-      let msgText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
-      if (wasOverwritten) msgText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n`;
+      // 5. Send success message (Summary)
+      let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
+      if (wasOverwritten) summaryText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
+      summaryText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n📍 CHI TIẾT LỘ TRÌNH:`;
+      await sendMsg(summaryText);
       
-      msgText += `📍 CHI TIẾT LỘ TRÌNH:\n`;
-      result.routes.forEach((r, i) => {
-         msgText += `\n🚛 Xe ${i+1} (${r.vehicleId})\n`;
+      // Send detailed routes in chunks to avoid 4096 char limit
+      for (let i = 0; i < result.routes.length; i++) {
+         const r = result.routes[i];
+         let routeText = `🚛 Xe ${i+1} (${r.vehicleId})\n`;
          r.schedule.forEach((s) => {
-            msgText += `  - ${s.storeName} | Đến: ${s.arrivalTime} | KL: ${s.weight}kg | Thể tích: ${s.cbm}m³\n`;
+            routeText += `- ${s.storeName} | Đến: ${s.arrivalTime} | KL: ${s.weight}kg | ${s.cbm}m³\n`;
          });
-      });
-      
-      await sendMsg(msgText);
+         await sendMsg(routeText);
+      }
       
       // 6. Send Excel file
       const excelBuffer = generateExcelBuffer(result);
