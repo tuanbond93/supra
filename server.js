@@ -309,11 +309,13 @@ app.post('/api/telegram-webhook', async (req, res) => {
     }
 
     // 1. Send initial response
-    const sendMsg = async (text) => {
+    const sendMsg = async (text, useHtml = false) => {
+      const payload = { chat_id: chatId, text };
+      if (useHtml) payload.parse_mode = 'HTML';
       await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: chatId, text })
+        body: JSON.stringify(payload)
       }).catch(e => console.error(e));
     };
 
@@ -373,20 +375,21 @@ app.post('/api/telegram-webhook', async (req, res) => {
       for (let i = 0; i < result.routes.length; i++) {
          const r = result.routes[i];
          const depot = r._depot || result.depot;
-         let routeText = `🚛 Xe ${i+1} (${r.vehicleId})\n`;
+         let routeText = `<b>🚛 Xe ${i+1} (${r.vehicleId})</b>\n`;
          let mapUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}`;
          
          r.schedule.forEach((s) => {
             const kl = Math.round(s.weight);
             const cbm = Math.round(s.cbm * 10) / 10;
-            routeText += `  ▫️ ${s.storeName}\n       🕒 ${s.arrivalTime} | 📦 ${kl}kg | 🧊 ${cbm}m³\n`;
+            const sName = s.storeName.replace(/&/g, 'và').replace(/</g, '').replace(/>/g, '');
+            routeText += `🔹 ${s.arrivalTime} - ${sName} (${kl}kg, ${cbm}m³)\n`;
             mapUrl += `/${s.lat},${s.lng}`;
          });
          
          mapUrl += `/${depot.lat},${depot.lng}`;
-         routeText += `\n🗺 Xem bản đồ: ${mapUrl}\n`;
+         routeText += `\n🗺 <a href="${mapUrl}">Chi tiết lộ trình</a>\n`;
          
-         await sendMsg(routeText);
+         await sendMsg(routeText, true);
       }
       
       // 6. Send Excel file
