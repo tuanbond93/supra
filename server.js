@@ -313,7 +313,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
     }
 
     // 1. Send initial response
-    const fetch = (await import('node-fetch')).default;
     const sendMsg = async (text) => {
       await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
         method: 'POST',
@@ -334,40 +333,40 @@ app.post('/api/telegram-webhook', async (req, res) => {
     
     const os = require('os');
     const tempFile = path.join(os.tmpdir(), doc.file_name);
-    const dest = fs.createWriteStream(tempFile);
-    downloadRes.body.pipe(dest);
+    
+    const arrayBuffer = await downloadRes.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(tempFile, buffer);
 
-    dest.on('finish', async () => {
-       try {
-         // 3. Process the file
-         const fileDateMatch = doc.file_name.match(/(\d{8})/);
-         if (!fileDateMatch) throw new Error("Tên file không chứa ngày hợp lệ (YYYYMMDD).");
-         const fileDateStr = fileDateMatch[1];
-         const dateStr = `${fileDateStr.slice(0,4)}-${fileDateStr.slice(4,6)}-${fileDateStr.slice(6,8)}`;
-         
-         const uploadedData = loadDailyOrders(tempFile);
-         if (!uploadedData.dates.includes(dateStr)) throw new Error("Dữ liệu không khớp với ngày trong tên file.");
+    try {
+      // 3. Process the file
+      const fileDateMatch = doc.file_name.match(/(\d{8})/);
+      if (!fileDateMatch) throw new Error("Tên file không chứa ngày hợp lệ (YYYYMMDD).");
+      const fileDateStr = fileDateMatch[1];
+      const dateStr = `${fileDateStr.slice(0,4)}-${fileDateStr.slice(4,6)}-${fileDateStr.slice(6,8)}`;
+      
+      const uploadedData = loadDailyOrders(tempFile);
+      if (!uploadedData.dates.includes(dateStr)) throw new Error("Dữ liệu không khớp với ngày trong tên file.");
 
-         const dayOrders = uploadedData.byDate[dateStr];
-         const result = optimizeDay(dateStr, dayOrders, storeLocations, CONFIG);
-         
-         // 4. Update history
-         const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
-         const emailLabel = message.from.username ? `@${message.from.username}` : 'Telegram User';
-         historyManager.recordUploadLog(`Telegram: ${emailLabel}`, doc.file_name, 'bot', dateStr);
+      const dayOrders = uploadedData.byDate[dateStr];
+      const result = optimizeDay(dateStr, dayOrders, storeLocations, CONFIG);
+      
+      // 4. Update history
+      const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
+      const emailLabel = message.from.username ? `@${message.from.username}` : 'Telegram User';
+      historyManager.recordUploadLog(`Telegram: ${emailLabel}`, doc.file_name, 'bot', dateStr);
 
-         // 5. Send success message
-         let msgText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
-         if (wasOverwritten) msgText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-         msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.summary.totalStops}\n- Tổng Xe Điều: ${result.summary.totalVehicles}\n- Tổng KL: ${result.summary.totalWeight}kg`;
-         
-         await sendMsg(msgText);
-         fs.unlinkSync(tempFile);
-       } catch(err) {
-         await sendMsg(`❌ Lỗi xử lý: ${err.message}`);
-         if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
-       }
-    });
+      // 5. Send success message
+      let msgText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
+      if (wasOverwritten) msgText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
+      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.summary.totalStops}\n- Tổng Xe Điều: ${result.summary.totalVehicles}\n- Tổng KL: ${result.summary.totalWeight}kg`;
+      
+      await sendMsg(msgText);
+      fs.unlinkSync(tempFile);
+    } catch(err) {
+      await sendMsg(`❌ Lỗi xử lý: ${err.message}`);
+      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+    }
 
     res.sendStatus(200);
   } catch(e) {
