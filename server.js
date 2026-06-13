@@ -370,7 +370,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
       // 5. Send success message
       let msgText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
       if (wasOverwritten) msgText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.summary.totalStops}\n- Tổng Xe Điều: ${result.summary.totalVehicles}\n- Tổng KL: ${result.summary.totalWeight}kg`;
+      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg`;
       
       await sendMsg(msgText);
       fs.unlinkSync(tempFile);
