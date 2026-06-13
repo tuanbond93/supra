@@ -195,6 +195,58 @@ app.post('/api/plan', upload.single('planFile'), async (req, res) => {
   }
 });
 
+function generateExcelBuffer(data) {
+  const XLSX = require('xlsx');
+  const rows = [];
+  
+  data.routes.forEach(r => {
+    const depot = r._depot || data.depot;
+    rows.push({
+      'Biển số / Loại xe': r.vehicleId,
+      'Thứ tự': 'Bắt đầu',
+      'Mã CH': '',
+      'Tên Cửa Hàng': depot.name,
+      'Địa chỉ': 'Kho xuất phát',
+      'Khoảng cách (km)': 0,
+      'Thời gian đến': r.departureTime,
+      'Trọng lượng (kg)': '',
+      'Thể tích (m3)': ''
+    });
+    
+    r.schedule.forEach(s => {
+      rows.push({
+        'Biển số / Loại xe': r.vehicleId,
+        'Thứ tự': s.order,
+        'Mã CH': s.storeId,
+        'Tên Cửa Hàng': s.storeName,
+        'Địa chỉ': s.address,
+        'Khoảng cách (km)': s.distance,
+        'Thời gian đến': s.arrivalTime,
+        'Trọng lượng (kg)': s.weight,
+        'Thể tích (m3)': s.cbm
+      });
+    });
+    
+    rows.push({
+      'Biển số / Loại xe': r.vehicleId,
+      'Thứ tự': 'Kết thúc',
+      'Mã CH': '',
+      'Tên Cửa Hàng': depot.name,
+      'Địa chỉ': 'Về kho',
+      'Khoảng cách (km)': '',
+      'Thời gian đến': r.returnTime,
+      'Trọng lượng (kg)': '',
+      'Thể tích (m3)': ''
+    });
+    rows.push({}); // Empty row for separation
+  });
+  
+  const ws = XLSX.utils.json_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "KeHoachLoTrinh");
+  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+}
+
 app.get('/api/export-plan', (req, res) => {
   try {
     const data = global.latestPlanResult;
@@ -202,63 +254,7 @@ app.get('/api/export-plan', (req, res) => {
         return res.status(404).send('Chưa có dữ liệu lộ trình. Vui lòng Tính toán & Đề xuất trước.');
     }
     
-    const XLSX = require('xlsx');
-    const rows = [];
-    
-    data.routes.forEach(r => {
-      const depot = r._depot || data.depot;
-      rows.push({
-        'Biển số / Loại xe': r.vehicleId,
-        'Thứ tự': 'Bắt đầu',
-        'Mã CH': '',
-        'Tên Cửa Hàng': depot.name,
-        'Địa chỉ': 'Kho xuất phát',
-        'Khoảng cách (km)': 0,
-        'Thời gian đến': r.departureTime,
-        'Trọng lượng (kg)': '',
-        'Thể tích (m3)': ''
-      });
-      
-      r.schedule.forEach(s => {
-        rows.push({
-          'Biển số / Loại xe': r.vehicleId,
-          'Thứ tự': s.order,
-          'Mã CH': s.storeId,
-          'Tên Cửa Hàng': s.storeName,
-          'Địa chỉ': s.address,
-          'Khoảng cách (km)': s.distance,
-          'Thời gian đến': s.arrivalTime,
-          'Trọng lượng (kg)': s.weight,
-          'Thể tích (m3)': s.cbm
-        });
-      });
-      
-      rows.push({
-        'Biển số / Loại xe': r.vehicleId,
-        'Thứ tự': 'Kết thúc',
-        'Mã CH': '',
-        'Tên Cửa Hàng': depot.name,
-        'Địa chỉ': 'Về kho',
-        'Khoảng cách (km)': '',
-        'Thời gian đến': r.returnTime,
-        'Trọng lượng (kg)': '',
-        'Thể tích (m3)': ''
-      });
-      rows.push({}); // Empty row for separation
-    });
-    
-    const ws = XLSX.utils.json_to_sheet(rows);
-    
-    // Tweak column widths
-    ws['!cols'] = [
-        { wch: 18 }, { wch: 8 }, { wch: 8 }, { wch: 35 }, { wch: 40 },
-        { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }
-    ];
-    
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Lộ trình");
-    
-    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+    const buffer = generateExcelBuffer(data);
     
     const dlDate = global.latestPlanDate || new Date().toISOString().split('T')[0];
     res.setHeader('Content-Disposition', `attachment; filename="ke_hoach_xe_supra_${dlDate}.xlsx"`);
@@ -370,9 +366,30 @@ app.post('/api/telegram-webhook', async (req, res) => {
       // 5. Send success message
       let msgText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
       if (wasOverwritten) msgText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg`;
+      msgText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n`;
+      
+      msgText += `📍 CHI TIẾT LỘ TRÌNH:\n`;
+      result.routes.forEach((r, i) => {
+         msgText += `\n🚛 Xe ${i+1} (${r.vehicleId})\n`;
+         r.schedule.forEach((s) => {
+            msgText += `  - ${s.storeName} | Đến: ${s.arrivalTime} | KL: ${s.weight}kg | Thể tích: ${s.cbm}m³\n`;
+         });
+      });
       
       await sendMsg(msgText);
+      
+      // 6. Send Excel file
+      const excelBuffer = generateExcelBuffer(result);
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      const formData = new FormData();
+      formData.append('chat_id', chatId);
+      formData.append('document', blob, `ke_hoach_lo_trinh_${dateStr.replace(/-/g,'')}.xlsx`);
+      
+      await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, {
+        method: 'POST',
+        body: formData
+      }).catch(e => console.error('Error sending document', e));
+
       fs.unlinkSync(tempFile);
     } catch(err) {
       await sendMsg(`❌ Lỗi xử lý: ${err.message}`);
