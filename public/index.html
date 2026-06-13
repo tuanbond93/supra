@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supra Route Optimizer — Winmart Phú Thọ</title>
+  <meta name="description" content="Hệ thống tối ưu hóa tuyến đường giao hàng Winmart - Supra Logistics Phú Thọ">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header id="main-header">
+    <div class="header-left">
+      <div class="logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M18 18.5C18.83 18.5 19.5 17.83 19.5 17C19.5 16.17 18.83 15.5 18 15.5C17.17 15.5 16.5 16.17 16.5 17C16.5 17.83 17.17 18.5 18 18.5ZM19.5 9.5H17V12H21.46L19.5 9.5ZM6 18.5C6.83 18.5 7.5 17.83 7.5 17C7.5 16.17 6.83 15.5 6 15.5C5.17 15.5 4.5 16.17 4.5 17C4.5 17.83 5.17 18.5 6 18.5ZM20 8L23 12V17H21C21 18.66 19.66 20 18 20C16.34 20 15 18.66 15 17H9C9 18.66 7.66 20 6 20C4.34 20 3 18.66 3 17H1V6C1 4.9 1.9 4 3 4H17V8H20Z" fill="#ffffff"/></svg>
+        <div><h1>SUPRA</h1><span class="subtitle">Kế Hoạch Xe & Lộ Trình</span></div>
+      </div>
+    </div>
+    <div class="header-center"></div>
+    <div class="header-right">
+      <span class="badge" id="constraint-badge">1.9T + 12m³</span>
+      <span class="badge badge-live" id="status-badge">● Sẵn sàng</span>
+    </div>
+  </header>
+
+  <div class="tabs-container" style="background:var(--bg-card); padding: 0 24px; border-bottom: 1px solid var(--border-color); display:flex; gap:20px;">
+    <button class="tab-btn active" onclick="switchTab('tab-plan')" style="background:none; border:none; color:var(--accent-teal); border-bottom:3px solid var(--accent-teal); padding:16px 8px; font-weight:700; font-size:1.05rem; cursor:pointer;">Kế Hoạch Lộ Trình</button>
+    <button class="tab-btn" onclick="switchTab('tab-trend')" style="background:none; border:none; color:var(--text-secondary); border-bottom:3px solid transparent; padding:16px 8px; font-weight:600; font-size:1.05rem; cursor:pointer;">📈 Xu Hướng Sản Lượng</button>
+    <button class="tab-btn" onclick="switchTab('tab-log')" style="background:none; border:none; color:var(--text-secondary); border-bottom:3px solid transparent; padding:16px 8px; font-weight:600; font-size:1.05rem; cursor:pointer;">🕒 Lịch Sử Hệ Thống</button>
+  </div>
+  
+  <div id="login-overlay" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; display:flex; justify-content:center; align-items:center;">
+    <div style="background:var(--bg-card); padding:32px; border-radius:12px; width:400px; text-align:center; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+       <h2 style="margin-bottom: 16px; color:var(--text-primary);">Đăng nhập Hệ thống</h2>
+       <p style="color:var(--text-secondary); margin-bottom: 24px;">Vui lòng nhập Email làm việc của bạn để lưu lại lịch sử Kế hoạch xe tải lên.</p>
+       
+       <input type="email" id="user-email-input" placeholder="Ví dụ: tuanns@ghn.vn" style="width:100%; padding:12px; margin-bottom:20px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); font-size:1rem; outline:none;" onkeypress="if(event.key === 'Enter') submitEmailLogin()">
+       
+       <button onclick="submitEmailLogin()" class="btn-primary" style="width:100%; padding:12px; font-size:1.1rem;">Vào Hệ Thống</button>
+    </div>
+  </div>
+
+  <!-- PLAN TAB -->
+  <main id="tab-plan">
+    <section id="date-bar">
+      <div class="date-picker-container" style="width:100%; justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap: 12px;">
+           <label>🚚 Phân tích Kế hoạch xe mới nhất:</label>
+           <input type="file" id="plan-file-upload" accept=".xlsx,.xlsb" style="margin-left: 8px; padding: 6px; border: 1px dashed var(--accent-teal); border-radius: 4px; background: rgba(20,184,166,0.1); color: var(--text-primary); outline: none; cursor: pointer;">
+        </div>
+        <div style="display:flex; gap: 8px;">
+          <button id="btn-plan-optimize" class="btn-primary" onclick="runPlanOptimizer()">
+            🚀 Tính toán & Đề xuất
+          </button>
+          <button id="btn-export-excel" class="btn-secondary hidden" onclick="window.open('/api/export-plan', '_blank')" style="background:linear-gradient(135deg, #22c55e, #16a34a); color:white; border:none; padding:12px 24px; border-radius:8px; font-weight:700; font-size:1.1rem; cursor:pointer; box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3); transition: transform 0.2s;">
+            📥 TẢI KẾ HOẠCH
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="stats-bar">
+      <div class="stat-card"><div class="stat-icon">📍</div><div class="stat-info"><span class="stat-value" id="plan-total-stops">--</span><span class="stat-label">Điểm giao</span></div></div>
+      <div class="stat-card"><div class="stat-icon">🚛</div><div class="stat-info"><span class="stat-value" id="plan-total-vehicles">--</span><span class="stat-label">Xe thực hiện</span></div></div>
+      <div class="stat-card"><div class="stat-icon">📏</div><div class="stat-info"><span class="stat-value" id="plan-total-distance">--</span><span class="stat-label">Tổng km</span></div></div>
+      <div class="stat-card"><div class="stat-icon">⚖️</div><div class="stat-info"><span class="stat-value" id="plan-total-weight">--</span><span class="stat-label">Tổng kg</span></div></div>
+      <div class="stat-card"><div class="stat-icon">📦</div><div class="stat-info"><span class="stat-value" id="plan-total-cbm">--</span><span class="stat-label">Tổng m³</span></div></div>
+    </section>
+
+    <div id="plan-alert-bar" class="hidden" style="margin:0 24px;background:rgba(239,68,68,0.1);border-left:4px solid var(--accent-red);padding:12px;border-radius:6px;color:var(--text-main);"></div>
+
+    <section id="content-area">
+      <div id="map-container">
+        <div id="plan-map" style="width:100%;height:100%;"></div>
+        <div id="map-legend"><h4>Chú thích</h4><div class="legend-items" id="plan-legend-items"></div></div>
+      </div>
+      <aside id="routes-panel">
+        <div class="panel-header">
+          <h2>📋 Lộ trình chi tiết</h2>
+          <div class="vehicle-tabs" id="plan-vehicle-tabs"></div>
+        </div>
+        <div id="plan-route-details">
+          <div class="empty-state">
+            <p>Nhấn <strong>"🚀 Tính toán & Đề xuất"</strong> để phân tích</p>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div id="loading-overlay" class="hidden">
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p id="loading-text">Gọi OSRM API...</p>
+    </div>
+  </div>
+
+  <!-- TREND TAB -->
+  <main id="tab-trend" class="hidden" style="padding: 24px; overflow-y: auto; flex: 1;">
+    <h2 style="margin-bottom: 20px; color: var(--text-primary);">📈 Phân tích Xu Hướng Sản Lượng</h2>
+    <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:24px; margin-bottom:24px;">
+      <canvas id="trend-chart" style="width:100%; max-height:300px;"></canvas>
+    </div>
+    <div id="trend-content" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:24px; min-height: 400px;">
+      <p style="color:var(--text-secondary);">Đang tải dữ liệu lịch sử...</p>
+    </div>
+  </main>
+
+  <!-- LOG TAB -->
+  <main id="tab-log" class="hidden" style="padding: 24px; overflow-y: auto; flex: 1;">
+    <h2 style="margin-bottom: 20px; color: var(--text-primary);">🕒 Lịch Sử Hệ Thống (Upload Log)</h2>
+    <div id="log-content" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:24px; min-height: 400px;">
+      <p style="color:var(--text-secondary);">Đang tải dữ liệu...</p>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

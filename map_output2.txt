@@ -1,0 +1,13 @@
+Opened: 38, Unopened: 0, Unknown: 77
+
+Unknown Samples:
+2BVB - WM+ PTO Khu 9, Tam Nông | Khu 9, Xã Tam Nông, Tỉnh Phú Thọ
+2BZL - WM+ PTO Khu 4 Vụ Quang, Chân Mộng | Khu 4 Vụ Quang, Xã Chân Mộng, Tỉnh Phú Thọ
+2BWO - WM+ PTO TĐ 24 Khu 8, Hạ Hòa | Thửa Đất Số 24, Tờ Bản Đồ Số 13, Khu 8, Xã Hạ Hòa, Tỉnh Phú Thọ
+1649 - WM VC+ PTO Phú Thọ | TTTM Vincom+ Phú Thọ, Phường Hùng Vương,Thị xã Phú Thọ,P. Hùng VươngTX. Phú Thọ,T. Phú Thọ
+2BVZ - WM+ PTO Khu Cống 2, Cẩm Khê | Khu Cống 2, Xã Cẩm Khê, Tỉnh Phú Thọ
+2BXG - WM+ PTO Khu 9, Chí Tiên | Khu 9, Xã Chí Tiên, Tỉnh Phú Thọ
+2BWV - WM+ PTO Khu 2, Tu Vũ | Khu 2, Xã Tu Vũ, Tỉnh Phú Thọ
+2BQJ - WM+ PTO Khu 6 Đồng Xuân, Thanh Ba | Khu 6 Đồng Xuân, Xã Thanh Ba, Tỉnh Phú Thọ
+2BTL - WM+ PTO Khu Tiền Phong | Khu Tiền Phong, Xã Hùng Việt, Tỉnh Phú Thọ
+2BC5 - WM+ VPC Quế Trạo, Đồng Quế | Thôn Quế Trạo B, Xã Tam Sơn, Tỉnh Phú Thọ

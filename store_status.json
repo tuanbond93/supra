@@ -1,0 +1,1037 @@
+[
+  {
+    "storeId": "2BVB",
+    "name": "2BVB - WM+ PTO Khu 9, Tam Nông",
+    "address": "Khu 9, Xã Tam Nông, Tỉnh Phú Thọ",
+    "lat": 21.23421,
+    "lng": 105.319,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BZL",
+    "name": "2BZL - WM+ PTO Khu 4 Vụ Quang, Chân Mộng",
+    "address": "Khu 4 Vụ Quang, Xã Chân Mộng, Tỉnh Phú Thọ",
+    "lat": 21.55818,
+    "lng": 105.2702,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BWO",
+    "name": "2BWO - WM+ PTO TĐ 24 Khu 8, Hạ Hòa",
+    "address": "Thửa Đất Số 24, Tờ Bản Đồ Số 13, Khu 8, Xã Hạ Hòa, Tỉnh Phú Thọ",
+    "lat": 21.58822,
+    "lng": 105.0472,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 1649,
+    "name": "1649 - WM VC+ PTO Phú Thọ",
+    "address": "TTTM Vincom+ Phú Thọ, Phường Hùng Vương,Thị xã Phú Thọ,P. Hùng VươngTX. Phú Thọ,T. Phú Thọ",
+    "lat": 21.40215,
+    "lng": 105.2142,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|phường hùng vương"
+  },
+  {
+    "storeId": 1564,
+    "name": "1564 - WM VCP PTO Việt Trì",
+    "address": "Tầng 2 TTTM Vincom Plaza, Số 2 Đại,lộ Hùng Vương, P. Tiên Cát,TP. Việt Trì,P. Tiên CátTP. Việt Trì,T. Phú Thọ",
+    "lat": 21.3124,
+    "lng": 105.396,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tiên cát"
+  },
+  {
+    "storeId": "2BVZ",
+    "name": "2BVZ - WM+ PTO Khu Cống 2, Cẩm Khê",
+    "address": "Khu Cống 2, Xã Cẩm Khê, Tỉnh Phú Thọ",
+    "lat": 21.46003,
+    "lng": 105.0905,
+    "status": "Không mở",
+    "matchedArea": "huyện cẩm khê|thị trấn cẩm khê"
+  },
+  {
+    "storeId": "2BXG",
+    "name": "2BXG - WM+ PTO Khu 9, Chí Tiên",
+    "address": "Khu 9, Xã Chí Tiên, Tỉnh Phú Thọ",
+    "lat": 21.43263,
+    "lng": 105.1522,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BWV",
+    "name": "2BWV - WM+ PTO Khu 2, Tu Vũ",
+    "address": "Khu 2, Xã Tu Vũ, Tỉnh Phú Thọ",
+    "lat": 21.0828,
+    "lng": 105.3011,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BQJ",
+    "name": "2BQJ - WM+ PTO Khu 6 Đồng Xuân, Thanh Ba",
+    "address": "Khu 6 Đồng Xuân, Xã Thanh Ba, Tỉnh Phú Thọ",
+    "lat": 21.50776,
+    "lng": 105.1221,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh ba|xã đồng xuân"
+  },
+  {
+    "storeId": "2BTL",
+    "name": "2BTL - WM+ PTO Khu Tiền Phong",
+    "address": "Khu Tiền Phong, Xã Hùng Việt, Tỉnh Phú Thọ",
+    "lat": 21.36556,
+    "lng": 105.1301,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 4106,
+    "name": "4106 - WM+ PTO Khu 8 Nông Trang",
+    "address": "Khu 8, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3242,
+    "lng": 105.382,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": "2AY6",
+    "name": "2AY6 - WM+ PTO Khu Trung Phương, Việt Trì",
+    "address": "Khu Trung Phương, phường Minh Phương, Thành phố Việt Trì, Tỉnh Phú Thọ",
+    "lat": 21.32184,
+    "lng": 105.3732,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường minh phương"
+  },
+  {
+    "storeId": "2BC5",
+    "name": "2BC5 - WM+ VPC Quế Trạo, Đồng Quế",
+    "address": "Thôn Quế Trạo B, Xã Tam Sơn, Tỉnh Phú Thọ",
+    "lat": 21.43951,
+    "lng": 105.4109,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BEV",
+    "name": "2BEV - WM+ PTO Đội 3, Nông Trang",
+    "address": "Đội 3, Phường Nông Trang, Tỉnh Phú Thọ",
+    "lat": 21.32385,
+    "lng": 105.3414,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3343,
+    "name": "3343 - WM+ PTO 3023 Đại Lộ Hùng Vương",
+    "address": "số 3023 đường Hùng Vương, Khu 1, Phường Vân Cơ, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.34056,
+    "lng": 105.3645,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường vân cơ"
+  },
+  {
+    "storeId": 3643,
+    "name": "3643 - WM+ PTO Khu Tân An, Tân Dân",
+    "address": "Khu Tân An, Phường Tân Dân, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32556,
+    "lng": 105.3949,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tân dân"
+  },
+  {
+    "storeId": 6432,
+    "name": "6432 - WM+ PTO Vũ Duệ, Việt Trì",
+    "address": "Đường Vũ Duệ, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.33672,
+    "lng": 105.3769,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": "2BDO",
+    "name": "2BDO - WM+ PTO Khu An Ninh, Hùng Việt",
+    "address": "Khu An Ninh, Xã Hùng Việt, Tỉnh Phú Thọ",
+    "lat": 21.34657,
+    "lng": 105.1355,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3407,
+    "name": "3407 - WM+ PTO 1250 Hùng Vương",
+    "address": "1250 Hùng Vương, Phường Tiên Cát, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.30839,
+    "lng": 105.4037,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tiên cát"
+  },
+  {
+    "storeId": 3518,
+    "name": "3518 - WM+ PTO 73 Quang Trung",
+    "address": "73 Quang trung, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3263,
+    "lng": 105.385,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": "2AJJ",
+    "name": "2AJJ - WM+ PTO 439 Tiên Dung",
+    "address": "Số Nhà 439, Phố Tiên Dung, Khu Tiên Phú, Phường Tiên Cát, Thành phố Việt Trì, Tỉnh Phú Thọ",
+    "lat": 21.31501,
+    "lng": 105.398,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tiên cát"
+  },
+  {
+    "storeId": "2BFK",
+    "name": "2BFK - WM+ PTO 192-194 Trần Phú, Việt Trì",
+    "address": "Số 192-194 Trần Phú, Phường Việt Trì, Tỉnh Phú Thọ",
+    "lat": 21.33075,
+    "lng": 105.404,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3345,
+    "name": "3345 - WM+ PTO 44 Nguyễn Du",
+    "address": "số 44 Nguyễn Du, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32931,
+    "lng": 105.3809,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": 3585,
+    "name": "3585 - WM+ PTO Khu 6B, Nông Trang",
+    "address": "Khu 6B, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3312,
+    "lng": 105.379,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": 3656,
+    "name": "3656 - WM+ PTO Khu Tân Thịnh, Tân Dân",
+    "address": "Khu Tân Thịnh, Phường Tân Dân, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3276,
+    "lng": 105.4,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tân dân"
+  },
+  {
+    "storeId": 6052,
+    "name": "6052 - WM+ PTO Khu 5 Nông Trang",
+    "address": "Đường Nguyễn Du kéo dài, Khu 5, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.33311,
+    "lng": 105.3857,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": "2B73",
+    "name": "2B73 - WM+ PTO Đồng Ve, Sơn Lương",
+    "address": "Khu Đồng Ve, Xã Sơn Lương, Tỉnh Phú Thọ",
+    "lat": 21.47474,
+    "lng": 104.9476,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3539,
+    "name": "3539 - WM+ PTO Tổ 1, khu 1A, Vân Phú",
+    "address": "Tổ 1, khu 1A, Phường Vân Phú, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.36793,
+    "lng": 105.344,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường vân phú"
+  },
+  {
+    "storeId": 6513,
+    "name": "6513 - WM+ PTO 12 Tổ 5 Trần Phú",
+    "address": "Số nhà 12, Tổ 5, Đường Trần Phú, Khu Tân Phú, Phường Tân Dân, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32484,
+    "lng": 105.4032,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tân dân"
+  },
+  {
+    "storeId": "2BAW",
+    "name": "2BAW - WM+ PTO Khu 4, Phú Mỹ",
+    "address": "Khu 4, Xã Phú Mỹ, Tỉnh Phú Thọ",
+    "lat": 21.50141,
+    "lng": 105.258,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BSF",
+    "name": "2BSF - WM+ PTO 234 Đông Phú",
+    "address": "Số 234 Đường Đông Phú, Khu Suối Gấm, Xã Cẩm Khê, Tỉnh Phú Thọ",
+    "lat": 21.42156,
+    "lng": 105.1289,
+    "status": "Không mở",
+    "matchedArea": "huyện cẩm khê|thị trấn cẩm khê"
+  },
+  {
+    "storeId": "2BW1",
+    "name": "2BW1 - WM+ PTO Khu 13, Minh Hòa",
+    "address": "Khu 13, Xã Minh Hòa, Tỉnh Phú Thọ",
+    "lat": 21.24838,
+    "lng": 105.1121,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3627,
+    "name": "3627 - WM+ PTO Khu 2A, Nông Trang",
+    "address": "Khu 2A, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3293,
+    "lng": 105.378,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": 3685,
+    "name": "3685 - WM+ PTO 1343 Hùng Vương",
+    "address": "1343, Tổ 33, Đại Lộ Hùng Vương, Phường Tiên Cát, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3095,
+    "lng": 105.4017,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tiên cát"
+  },
+  {
+    "storeId": 6434,
+    "name": "6434 - WM+ PTO 107 Bạch Hạc",
+    "address": "Số nhà 107 Phố Bạch Hạc, Phường Bạch Hạc, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.29671,
+    "lng": 105.4396,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường bạch hạc"
+  },
+  {
+    "storeId": "2AB9",
+    "name": "2AB9 - WM+ PTO 35 Hà Chương",
+    "address": "Số nhà 35, Phố Hà Chương, Khu Hàm Nghi, Phường Gia Cẩm, Thành phố Việt Trì, Tỉnh Phú Thọ",
+    "lat": 21.31563,
+    "lng": 105.3949,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường gia cẩm"
+  },
+  {
+    "storeId": 4093,
+    "name": "4093 - WM+ PTO Tổ 26A Hai Bà Trưng",
+    "address": "Tổ 26A, Hai Bà Trưng, Phường Thọ Sơn, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.31019,
+    "lng": 105.4127,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường thọ sơn"
+  },
+  {
+    "storeId": 4141,
+    "name": "4141 - WM+ PTO Khu 3 Vân Phú",
+    "address": "Khu 3, Phường Vân Phú, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3438,
+    "lng": 105.356,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường vân phú"
+  },
+  {
+    "storeId": "2APX",
+    "name": "2APX - WM+ PTO Khu Phố, TT Thanh Thủy",
+    "address": "Khu Phố, Thị trấn Thanh Thủy, Huyện Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.17229,
+    "lng": 105.281,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|thị trấn thanh thủy"
+  },
+  {
+    "storeId": "2BF1",
+    "name": "2BF1 - WM+ PTO Bắc Tiến 2, Hùng Việt",
+    "address": "Khu Bắc Tiến 2, Xã Hùng Việt, Tỉnh Phú Thọ",
+    "lat": 21.39066,
+    "lng": 105.1472,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BGF",
+    "name": "2BGF - WM+ PTO Khu 10, Xuân Lũng",
+    "address": "Khu 10, Xã Xuân Lũng, Tỉnh Phú Thọ",
+    "lat": 21.38923,
+    "lng": 105.3003,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 4215,
+    "name": "4215 - WM+ PTO 44 Đại Nải",
+    "address": "44 Đại Nải, Phường Nông Trang, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32836,
+    "lng": 105.376,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường nông trang"
+  },
+  {
+    "storeId": "2AKL",
+    "name": "2AKL - WM+ PTO Khu 2, Trạm Thản",
+    "address": "Khu 2, Xã Trạm Thản, Huyện Phù Ninh, Tỉnh Phú Thọ",
+    "lat": 21.49197,
+    "lng": 105.2254,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã trạm thản"
+  },
+  {
+    "storeId": "2B44",
+    "name": "2B44 - WM+ PTO Khu 3, TT Phong Châu",
+    "address": "Thửa đất số 71-3, Tờ bản đồ số 33, Khu 3, Thị trấn Phong Châu, Huyện Phù Ninh, Tỉnh Phú Thọ",
+    "lat": 21.4084,
+    "lng": 105.3055,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã phù ninh"
+  },
+  {
+    "storeId": "2BW4",
+    "name": "2BW4 - WM+ PTO Thanh Bình, Âu Cơ",
+    "address": "Khu Thanh Bình, Phường Âu Cơ, Tỉnh Phú Thọ",
+    "lat": 21.39998,
+    "lng": 105.1889,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|phường âu cơ"
+  },
+  {
+    "storeId": "2BW8",
+    "name": "2BW8 - WM+ PTO Khu 1, Bản Nguyên",
+    "address": "Khu 1, Xã Bản Nguyên, Tỉnh Phú Thọ",
+    "lat": 21.26925,
+    "lng": 105.295,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3993,
+    "name": "3993 - WM+ PTO 66 Hàn Thuyên",
+    "address": "66 Hàn Thuyên, tổ 1, phố Tân Bình, Phường Tân Dân, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3244,
+    "lng": 105.399,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tân dân"
+  },
+  {
+    "storeId": 5847,
+    "name": "5847 - WM+ PTO 191 Cao Du",
+    "address": "Số 191 Phố Cao Du, Phường Âu Cơ, Thị xã Phú Thọ, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.39749,
+    "lng": 105.2208,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|phường âu cơ"
+  },
+  {
+    "storeId": 6399,
+    "name": "6399 - WM+ PTO Khu 3 Hùng Lô, Việt Trì",
+    "address": "Khu 3, Xã Hùng Lô, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.36991,
+    "lng": 105.386,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|xã hùng lô"
+  },
+  {
+    "storeId": "2AU9",
+    "name": "2AU9 - WM+ PTO Băng 1, Nguyễn Tất Thành",
+    "address": "Băng 1, Đường Nguyễn Tất Thành, Phường Thanh Miếu, Thành phố Việt Trì, Tỉnh Phú Thọ",
+    "lat": 21.30816,
+    "lng": 105.4266,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường thanh miếu"
+  },
+  {
+    "storeId": "2BBN",
+    "name": "2BBN - WM+ PTO Giáp Xuân, Phú Khê",
+    "address": "Khu Giáp Xuân, Xã Phú Khê, Tỉnh Phú Thọ",
+    "lat": 21.38134,
+    "lng": 105.1094,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BBO",
+    "name": "2BBO - WM+ PTO Khu 2, Xuân Lũng",
+    "address": "Khu 2, Xã Xuân Lũng, Tỉnh Phú Thọ",
+    "lat": 21.37217,
+    "lng": 105.2987,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BDE",
+    "name": "2BDE - WM+ PTO Đề Ngữ, Yên Sơn",
+    "address": "Khu Đề Ngữ, Xã Yên Sơn, Tỉnh Phú Thọ",
+    "lat": 20.97086,
+    "lng": 105.2856,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BO6",
+    "name": "2BO6 - WM+ PTO Khu 11, Tu Vũ",
+    "address": "Khu 11, Xã Tu Vũ, Tỉnh Phú Thọ",
+    "lat": 21.10792,
+    "lng": 105.3145,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BU7",
+    "name": "2BU7 - WM+ PTO Quyết Tiến, Cự Đồng",
+    "address": "Thôn Quyết Tiến, Xã Cự Đồng, Tỉnh Phú Thọ",
+    "lat": 21.11367,
+    "lng": 105.231,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BY6",
+    "name": "2BY6 - WM+ PTO Khu 3, Thanh Thủy",
+    "address": "Khu 3, Xã Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.12625,
+    "lng": 105.271,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|thị trấn thanh thủy"
+  },
+  {
+    "storeId": 3313,
+    "name": "3313 - WM+ PTO 62 Phan Châu Trinh",
+    "address": "Số 62, đường Phan Châu Trinh, Phường Gia Cẩm, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32352,
+    "lng": 105.3872,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường gia cẩm"
+  },
+  {
+    "storeId": 6338,
+    "name": "6338 - WM+ PTO Cao Xá, Lâm Thao",
+    "address": "Khu Ao chợ Phong Vân, Xã Cao Xá, Huyện Lâm Thao, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.29754,
+    "lng": 105.349,
+    "status": "Đã mở",
+    "matchedArea": "huyện lâm thao|xã cao xá"
+  },
+  {
+    "storeId": 6540,
+    "name": "6540 - WM+ PTO Khu 12, TT Lâm Thao",
+    "address": "Số 402, Khu 12, Thị Trấn Lâm Thao, Huyện Lâm Thao, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.33853,
+    "lng": 105.2932,
+    "status": "Đã mở",
+    "matchedArea": "huyện lâm thao|thị trấn lâm thao"
+  },
+  {
+    "storeId": "2ALC",
+    "name": "2ALC - WM+ PTO Tân Hương, Hương Cần",
+    "address": "Khu Tân Hương, Xã Hương Cần, Huyện Thanh Sơn, Tỉnh Phú Thọ",
+    "lat": 21.023,
+    "lng": 105.2418,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh sơn|xã hương cần"
+  },
+  {
+    "storeId": "2BHV",
+    "name": "2BHV - WM+ PTO Đống Cả, Xuân Đài",
+    "address": "Xóm Đống Cả, Xã Xuân Đài, Tỉnh Phú Thọ",
+    "lat": 21.11927,
+    "lng": 105.009,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BZ0",
+    "name": "2BZ0 - WM+ PTO An Ninh Hạ, Phú Thọ",
+    "address": "Khu An Ninh Hạ, Phường Phú Thọ, Tỉnh Phú Thọ",
+    "lat": 21.4226,
+    "lng": 105.2159,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3642,
+    "name": "3642 - WM+ PTO Băng 1, Quang Trung",
+    "address": "Băng 1, Đường Quang Trung, Phường Tân Dân, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3295,
+    "lng": 105.39,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường tân dân"
+  },
+  {
+    "storeId": 5944,
+    "name": "5944 - WM+ PTO 12 Hàn Thuyên",
+    "address": "12 Hàn Thuyên, Thị Trấn Thanh Ba, Huyện Thanh Ba, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.50077,
+    "lng": 105.1405,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh ba|thị trấn thanh ba"
+  },
+  {
+    "storeId": 6460,
+    "name": "6460 - WM+ PTO Đồng Gia, Việt Trì",
+    "address": "Khu Tái định cư Đồng Gia, Phường Minh Nông, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3143,
+    "lng": 105.3907,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường minh nông"
+  },
+  {
+    "storeId": 6529,
+    "name": "6529 - WM+ PTO 545 Trần Phú",
+    "address": "Số nhà 545, Đường Trần Phú, Phường Dữu Lâu, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3398,
+    "lng": 105.4048,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường dữu lâu"
+  },
+  {
+    "storeId": "2AQB",
+    "name": "2AQB - WM+ PTO Khu Trung Tâm, Lương Sơn",
+    "address": "Khu Trung Tâm, Xã Lương Sơn, Huyện Yên Lập, Tỉnh Phú Thọ",
+    "lat": 21.45257,
+    "lng": 104.9721,
+    "status": "Không mở",
+    "matchedArea": "huyện yên lập|xã lương sơn"
+  },
+  {
+    "storeId": "2BDF",
+    "name": "2BDF - WM+ PTO Trung Tiến 2, Hùng Việt",
+    "address": "Khu Trung Tiến 2, Xã Hùng Việt, Tỉnh Phú Thọ",
+    "lat": 21.37525,
+    "lng": 105.1425,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BS3",
+    "name": "2BS3 - WM+ PTO Khu 6, Hy Cương",
+    "address": "Khu 6, Xã Hy Cương, Tỉnh Phú Thọ",
+    "lat": 21.32807,
+    "lng": 105.3256,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BS5",
+    "name": "2BS5 - WM+ PTO Phượng Hùng 1, Chí Đám",
+    "address": "Khu Phượng Hùng 1, Xã Chí Đám, Tỉnh Phú Thọ",
+    "lat": 21.6511,
+    "lng": 105.2024,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 3464,
+    "name": "3464 - WM+ PTO Thành Công, Việt Trì",
+    "address": "Phố Thành Công, Phường Thọ Sơn, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.312,
+    "lng": 105.417,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường thọ sơn"
+  },
+  {
+    "storeId": 6117,
+    "name": "6117 - WM+ PTO 167-169 Nguyễn Trãi",
+    "address": "167-169 Đường Nguyễn Trãi, Phường Minh Phương, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.33129,
+    "lng": 105.3702,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường minh phương"
+  },
+  {
+    "storeId": "2ALI",
+    "name": "2ALI - WM+ PTO Khu 1, Bảo Yên",
+    "address": "Khu 01, Xã Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.15663,
+    "lng": 105.2842,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|thị trấn thanh thủy"
+  },
+  {
+    "storeId": "2AMP",
+    "name": "2AMP - WM+ PTO 28 Phố Vàng",
+    "address": "Số 28 Phố Vàng, Thị trấn Thanh Sơn, Huyện Thanh Sơn, Tỉnh Phú Thọ",
+    "lat": 21.2113,
+    "lng": 105.1796,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh sơn|thị trấn thanh sơn"
+  },
+  {
+    "storeId": "2BX3",
+    "name": "2BX3 - WM+ PTO Khu 10, Hạ Hòa",
+    "address": "Khu 10, Xã Hạ Hòa, Tỉnh Phú Thọ",
+    "lat": 21.56449,
+    "lng": 105.0063,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BX4",
+    "name": "2BX4 - WM+ PTO Khu 10, Phù Ninh",
+    "address": "Khu 10, Xã Phù Ninh, Tỉnh Phú Thọ",
+    "lat": 21.39697,
+    "lng": 105.3257,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã phù ninh"
+  },
+  {
+    "storeId": "2BX9",
+    "name": "2BX9 - WM+ PTO Khu 15, Dục Mỹ",
+    "address": "Khu 15, Thôn Dục Mỹ, Xã Bản Nguyên, Tỉnh Phú Thọ",
+    "lat": 21.30395,
+    "lng": 105.3205,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 5689,
+    "name": "5689 - WM+ PTO 188 Đường Nam, Phù Ninh",
+    "address": "Số 188 Đường Nam, Thị Trấn Phong Châu, Huyện Phù Ninh, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.4078,
+    "lng": 105.3137,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã phù ninh"
+  },
+  {
+    "storeId": 5814,
+    "name": "5814 - WM+ PTO 25 tổ 10 Tân An",
+    "address": "Đường Đinh Tiên Hoàng, số 25 tổ 10 phố Tân An, Phường Hùng Vương, Thị xã Phú Thọ, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.40561,
+    "lng": 105.2123,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|phường hùng vương"
+  },
+  {
+    "storeId": 5905,
+    "name": "5905 - WM+ PTO 26 Âu Cơ",
+    "address": "26 Âu Cơ, Khu Tân Sơn, Thị Trấn Lâm Thao, Huyện Lâm Thao, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32541,
+    "lng": 105.2837,
+    "status": "Đã mở",
+    "matchedArea": "huyện lâm thao|thị trấn lâm thao"
+  },
+  {
+    "storeId": 6045,
+    "name": "6045 - WM+ PTO 476 Châu Phong",
+    "address": "476 Châu Phong, Khu 22, Phường Gia Cẩm, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32249,
+    "lng": 105.392,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường gia cẩm"
+  },
+  {
+    "storeId": 6178,
+    "name": "6178 - WM+ PTO Khu 22 Hoàng Xá",
+    "address": "Khu 22, Xã Hoàng Xá, Huyện Thanh Thuỷ, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.11347,
+    "lng": 105.2804,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2AFF",
+    "name": "2AFF - WM+ PTO Khu 5, Xuân Lộc",
+    "address": "Khu 5, Xã Xuân Lộc, Huyện Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.21081,
+    "lng": 105.3259,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|xã xuân lộc"
+  },
+  {
+    "storeId": "2AIU",
+    "name": "2AIU - WM+ PTO Khu 14, Đào Xá",
+    "address": "Khu 14, Xã Đào Xá, Huyện Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.22297,
+    "lng": 105.2893,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|xã đào xá"
+  },
+  {
+    "storeId": "2AKG",
+    "name": "2AKG - WM+ PTO Khu 5, Tứ Xã",
+    "address": "Khu 5, Xã Tứ Xã, Huyện Lâm Thao, Tỉnh Phú Thọ",
+    "lat": 21.28838,
+    "lng": 105.3024,
+    "status": "Đã mở",
+    "matchedArea": "huyện lâm thao|xã tứ xã"
+  },
+  {
+    "storeId": "2AKU",
+    "name": "2AKU - WM+ PTO Khu 4, Đoan Hạ",
+    "address": "Khu 4, Xã Đoan Hạ, Huyện Thanh Thủy, Tỉnh Phú Thọ",
+    "lat": 21.14165,
+    "lng": 105.2954,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh thủy|xã đoan hạ"
+  },
+  {
+    "storeId": "2ALO",
+    "name": "2ALO - WM+ PTO Khu 2, Chân Mộng",
+    "address": "Khu 2, Xã Chân Mộng, Huyện Đoan Hùng, Tỉnh Phú Thọ",
+    "lat": 21.52983,
+    "lng": 105.2069,
+    "status": "Không mở",
+    "matchedArea": "huyện đoan hùng|xã chân mộng"
+  },
+  {
+    "storeId": "2ANV",
+    "name": "2ANV - WM+ PTO Khu Km5, Hà Lộc",
+    "address": "Khu Km5, Xã Hà Lộc, Thị xã Phú Thọ, Tỉnh Phú Thọ",
+    "lat": 21.43654,
+    "lng": 105.2249,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|xã hà lộc"
+  },
+  {
+    "storeId": "2ASC",
+    "name": "2ASC - WM+ PTO Xóm Dẹ 1, Văn Miếu",
+    "address": "Xóm Dẹ 1, Xã Văn Miếu, Huyện Thanh Sơn, Tỉnh Phú Thọ",
+    "lat": 21.11393,
+    "lng": 105.1143,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh sơn|xã văn miếu"
+  },
+  {
+    "storeId": "2BPF",
+    "name": "2BPF - WM+ PTO Khu 3, Thanh Ba",
+    "address": "Khu 3, Xã Thanh Ba, Tỉnh Phú Thọ",
+    "lat": 21.51763,
+    "lng": 105.0969,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh ba|thị trấn thanh ba"
+  },
+  {
+    "storeId": 3435,
+    "name": "3435 - WM+ PTO 130 Lê Quý Đôn",
+    "address": "Số 130 Lê Quý Đôn, Phường Gia Cẩm, Thành phố Việt Trì, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.32062,
+    "lng": 105.3904,
+    "status": "Đã mở",
+    "matchedArea": "thành phố việt trì|phường gia cẩm"
+  },
+  {
+    "storeId": 5891,
+    "name": "5891 - WM+ PTO Khu 23 Vạn Xuân",
+    "address": "Khu 23, Xã Vạn Xuân, Huyện Tam Nông, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.28429,
+    "lng": 105.2576,
+    "status": "Không mở",
+    "matchedArea": "huyện tam nông|xã vạn xuân"
+  },
+  {
+    "storeId": 5918,
+    "name": "5918 - WM+ PTO Khu 12 Phú Hộ",
+    "address": "Khu 12, Xã Phú Hộ, Thị xã Phú Thọ, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.43931,
+    "lng": 105.2553,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|xã phú hộ"
+  },
+  {
+    "storeId": 6090,
+    "name": "6090 - WM+ PTO 191B Ba Mỏ",
+    "address": "Số 191B Phố Ba Mỏ, Thị Trấn Thanh Sơn, Huyện Thanh Sơn, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.20316,
+    "lng": 105.1796,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh sơn|thị trấn thanh sơn"
+  },
+  {
+    "storeId": 6264,
+    "name": "6264 - WM+ PTO Khu Ngọc Chúc 3, Đoan Hùng",
+    "address": "Khu Ngọc Chúc 3, Xã Chí Đám, Huyện Đoan Hùng, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.64783,
+    "lng": 105.1911,
+    "status": "Không mở",
+    "matchedArea": "huyện đoan hùng|xã chí đám"
+  },
+  {
+    "storeId": 6281,
+    "name": "6281 - WM+ PTO 425-427 Lạc Long Quân",
+    "address": "Số 425-427 Lạc Long Quân, Khu 8, Thị Trấn Hạ Hoà, Huyện Hạ Hoà, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.56007,
+    "lng": 105.0039,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 6291,
+    "name": "6291 - WM+ PTO Hoa Khê, Cẩm Khê",
+    "address": "Đường Hoa Khê, Thị trấn Cẩm Khê, Huyện Cẩm Khê, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.42252,
+    "lng": 105.1329,
+    "status": "Không mở",
+    "matchedArea": "huyện cẩm khê|thị trấn cẩm khê"
+  },
+  {
+    "storeId": 6750,
+    "name": "6750 - WM+ PTO Bình Phú, Phù Ninh",
+    "address": "Khu 1, Xã Bình Phú, Huyện Phù Ninh, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.40924,
+    "lng": 105.3765,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã bình phú"
+  },
+  {
+    "storeId": "2ANB",
+    "name": "2ANB - WM+ PTO Khu 15, Yển Khê",
+    "address": "Khu 15, Xã Hanh Cù, Huyện Thanh Ba, Tỉnh Phú Thọ",
+    "lat": 21.49248,
+    "lng": 105.1001,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh ba|xã hanh cù"
+  },
+  {
+    "storeId": "2BZ8",
+    "name": "2BZ8 - WM+ PTO Khu 6 Hương Xạ, Yên Kỳ",
+    "address": "Khu 6 Hương Xạ, Xã Yên Kỳ, Tỉnh Phú Thọ",
+    "lat": 21.55095,
+    "lng": 105.0822,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 6680,
+    "name": "6680 - WM+ PTO Minh Tân, Cẩm Khê",
+    "address": "Khu Minh Tân, Xã Minh Tân, Huyện Cẩm Khê, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.47019,
+    "lng": 105.0819,
+    "status": "Không mở",
+    "matchedArea": "huyện cẩm khê|xã minh tân"
+  },
+  {
+    "storeId": "2A66",
+    "name": "2A66 - WM+ PTO Khu Phố, Đoan Hùng",
+    "address": "Khu Phố, Xã Tây Cốc, Huyện Đoan Hùng, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.63233,
+    "lng": 105.1317,
+    "status": "Không mở",
+    "matchedArea": "huyện đoan hùng|xã tây cốc"
+  },
+  {
+    "storeId": "2AD3",
+    "name": "2AD3 - WM+ PTO Núi Trang, Phù Ninh",
+    "address": "Khu Núi Trang, Thị trấn Phong Châu, Huyện Phù Ninh, Tỉnh Phú Thọ",
+    "lat": 21.40373,
+    "lng": 105.3177,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã phù ninh"
+  },
+  {
+    "storeId": "2ANC",
+    "name": "2ANC - WM+ PTO Khu 21, Vạn Xuân",
+    "address": "Khu 21, Xã Vạn Xuân, Huyện Tam Nông, Tỉnh Phú Thọ",
+    "lat": 21.29233,
+    "lng": 105.2531,
+    "status": "Không mở",
+    "matchedArea": "huyện tam nông|xã vạn xuân"
+  },
+  {
+    "storeId": "2BBH",
+    "name": "2BBH - WM+ PTO Khu 8, Đông Thành",
+    "address": "Khu 8, Xã Đông Thành, Tỉnh Phú Thọ",
+    "lat": 21.43261,
+    "lng": 105.1866,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BIB",
+    "name": "2BIB - WM+ PTO Nương Sơn, Vân Bán",
+    "address": "Khu Nương Sơn, Xã Vân Bán, Tỉnh Phú Thọ",
+    "lat": 21.43357,
+    "lng": 105.0545,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": "2BIZ",
+    "name": "2BIZ - WM+ PTO Khu 4, Hoàng Cương",
+    "address": "Khu 4, Xã Hoàng Cương, Tỉnh Phú Thọ",
+    "lat": 21.47052,
+    "lng": 105.1564,
+    "status": "Chưa xác định",
+    "matchedArea": null
+  },
+  {
+    "storeId": 5846,
+    "name": "5846 - WM+ PTO 75 Cao Bang",
+    "address": "75 Cao Bang, khu Cao Bang, Xã Thanh Minh, Thị xã Phú Thọ, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.3954,
+    "lng": 105.2155,
+    "status": "Không mở",
+    "matchedArea": "thị xã phú thọ|xã thanh minh"
+  },
+  {
+    "storeId": 6871,
+    "name": "6871 - WM+ PTO 58 Hồ Thiên Hương",
+    "address": "Số nhà 58 Đường Hồ Thiên Hương, Thị Trấn Hưng Hoá, Huyện Tam Nông, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.25426,
+    "lng": 105.2921,
+    "status": "Không mở",
+    "matchedArea": "huyện tam nông|thị trấn hưng hoá"
+  },
+  {
+    "storeId": 5947,
+    "name": "5947 - WM+ PTO Khu 8 Thanh Ba",
+    "address": "Khu 8, Thị Trấn Thanh Ba, Huyện Thanh Ba, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.49894,
+    "lng": 105.1326,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh ba|thị trấn thanh ba"
+  },
+  {
+    "storeId": 6364,
+    "name": "6364 - WM+ PTO Tân An 4, Yên Lập",
+    "address": "Số nhà 150, Khu Tân An 4, Thị Trấn Yên Lập, Huyện Yên Lập, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.35203,
+    "lng": 105.0587,
+    "status": "Không mở",
+    "matchedArea": "huyện yên lập|thị trấn yên lập"
+  },
+  {
+    "storeId": 6562,
+    "name": "6562 - WM+ PTO 235-235B TT Hùng Sơn",
+    "address": "Số nhà 235-235B, Khu 06, Thị Trấn Hùng Sơn, Huyện Lâm Thao, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.35566,
+    "lng": 105.2935,
+    "status": "Đã mở",
+    "matchedArea": "huyện lâm thao|thị trấn lâm thao"
+  },
+  {
+    "storeId": 5943,
+    "name": "5943 - WM+ PTO 574 Tân Tiến",
+    "address": "574 Tân Tiến, Thị Trấn Đoan Hùng, Huyện Đoan Hùng, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.62406,
+    "lng": 105.1852,
+    "status": "Không mở",
+    "matchedArea": "huyện đoan hùng|thị trấn đoan hùng"
+  },
+  {
+    "storeId": 6240,
+    "name": "6240 - WM+ PTO Hùng Nhĩ, Thanh Sơn",
+    "address": "Khu Hùng Nhĩ, Thị Trấn Thanh Sơn, Huyện Thanh Sơn, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.22363,
+    "lng": 105.1885,
+    "status": "Không mở",
+    "matchedArea": "huyện thanh sơn|thị trấn thanh sơn"
+  },
+  {
+    "storeId": 6270,
+    "name": "6270 - WM+ PTO Phú Lộc, Phù Ninh",
+    "address": "Khu 5, Xã Phú Lộc, Huyện Phù Ninh, Tỉnh Phú Thọ, Việt Nam",
+    "lat": 21.43084,
+    "lng": 105.2926,
+    "status": "Không mở",
+    "matchedArea": "huyện phù ninh|xã phù ninh"
+  }
+]
