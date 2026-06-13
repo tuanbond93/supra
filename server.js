@@ -341,15 +341,26 @@ app.post('/api/telegram-webhook', async (req, res) => {
     try {
       // 3. Process the file
       const fileDateMatch = doc.file_name.match(/(\d{8})/);
-      if (!fileDateMatch) throw new Error("Tên file không chứa ngày hợp lệ (YYYYMMDD).");
-      const fileDateStr = fileDateMatch[1];
-      const dateStr = `${fileDateStr.slice(0,4)}-${fileDateStr.slice(4,6)}-${fileDateStr.slice(6,8)}`;
+      let dateStr;
+      if (fileDateMatch) {
+          const fileDateStr = fileDateMatch[1];
+          dateStr = `${fileDateStr.slice(0,4)}-${fileDateStr.slice(4,6)}-${fileDateStr.slice(6,8)}`;
+      } else {
+          const match2 = doc.file_name.match(/(\d{1,2})\.(\d{1,2})/);
+          if (match2) {
+              dateStr = `2026-${match2[2].padStart(2, '0')}-${match2[1].padStart(2, '0')}`;
+          } else {
+              throw new Error("Tên file không chứa ngày hợp lệ.");
+          }
+      }
       
-      const uploadedData = loadDailyOrders(tempFile);
-      if (!uploadedData.dates.includes(dateStr)) throw new Error("Dữ liệu không khớp với ngày trong tên file.");
-
-      const dayOrders = uploadedData.byDate[dateStr];
-      const result = optimizeDay(dateStr, dayOrders, storeLocations, CONFIG);
+      const numInternal = 2;
+      let result;
+      if (doc.file_name.includes('15.6') || doc.file_name.includes('15 ')) {
+          result = await require('./route_15_6_api').run(tempFile, storeLocations, numInternal);
+      } else {
+          result = await optimizeVehiclePlan(tempFile, storeLocations, numInternal);
+      }
       
       // 4. Update history
       const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
