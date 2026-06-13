@@ -372,10 +372,20 @@ app.post('/api/telegram-webhook', async (req, res) => {
       // Send detailed routes in chunks to avoid 4096 char limit
       for (let i = 0; i < result.routes.length; i++) {
          const r = result.routes[i];
+         const depot = r._depot || result.depot;
          let routeText = `🚛 Xe ${i+1} (${r.vehicleId})\n`;
+         let mapUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}`;
+         
          r.schedule.forEach((s) => {
-            routeText += `- ${s.storeName} | Đến: ${s.arrivalTime} | KL: ${s.weight}kg | ${s.cbm}m³\n`;
+            const kl = Math.round(s.weight);
+            const cbm = Math.round(s.cbm * 10) / 10;
+            routeText += `  ▫️ ${s.storeName}\n       🕒 ${s.arrivalTime} | 📦 ${kl}kg | 🧊 ${cbm}m³\n`;
+            mapUrl += `/${s.lat},${s.lng}`;
          });
+         
+         mapUrl += `/${depot.lat},${depot.lng}`;
+         routeText += `\n🗺 Xem bản đồ: ${mapUrl}\n`;
+         
          await sendMsg(routeText);
       }
       
