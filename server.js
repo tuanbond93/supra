@@ -147,6 +147,24 @@ const os = require('os');
 const upload = multer({ dest: os.tmpdir() });
 const historyManager = require('./history_manager');
 
+// Load latest plan on startup
+const latestPlanFile = path.join(__dirname, 'latest_plan.json');
+if (fs.existsSync(latestPlanFile)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(latestPlanFile, 'utf8'));
+    global.latestPlanResult = data.result;
+    global.latestPlanDate = data.date;
+  } catch(e) { console.error('Cannot load latest plan:', e.message); }
+}
+
+app.get('/api/latest-plan', (req, res) => {
+  if (global.latestPlanResult) {
+    res.json({ success: true, data: global.latestPlanResult, date: global.latestPlanDate });
+  } else {
+    res.json({ success: false, error: 'Chưa có kế hoạch nào' });
+  }
+});
+
 app.post('/api/plan', upload.single('planFile'), async (req, res) => {
   try {
     if (!req.file) {
@@ -185,6 +203,8 @@ app.post('/api/plan', upload.single('planFile'), async (req, res) => {
     
     global.latestPlanResult = result;
     global.latestPlanDate = dateStr;
+    fs.writeFileSync(latestPlanFile, JSON.stringify({ result, date: dateStr }));
+    
     res.json({ success: true, data: result, wasOverwritten: wasOverwritten });
   } catch (err) {
     console.error(err);
@@ -364,6 +384,11 @@ app.post('/api/telegram-webhook', async (req, res) => {
       const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
       const emailLabel = message.from.username ? `@${message.from.username}` : 'Telegram User';
       historyManager.recordUploadLog(`Telegram: ${emailLabel}`, doc.file_name, 'bot', dateStr);
+
+      // Save to latest plan
+      global.latestPlanResult = result;
+      global.latestPlanDate = dateStr;
+      fs.writeFileSync(path.join(__dirname, 'latest_plan.json'), JSON.stringify({ result, date: dateStr }));
 
       // 5. Send success message (Summary)
       let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;

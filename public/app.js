@@ -471,4 +471,25 @@ function anim(id, val) { const el = document.getElementById(id); if (el) { el.te
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
   renderPlanMap({ depot: {lat: 21.3043611, lng: 105.4293889, name: 'Kho Supra - Phú Thọ'}, routes: [] });
+  
+  // Load latest plan if exists
+  try {
+    const res = await fetch('/api/latest-plan');
+    const json = await res.json();
+    if (json.success && json.data) {
+        currentPlanData = json.data;
+        renderPlanDashboard(currentPlanData);
+        
+        const badge = document.getElementById('status-badge');
+        if (badge) {
+            badge.textContent = '● Hoàn tất (Đã lưu: ' + json.date + ')';
+            badge.className = 'badge badge-live';
+        }
+        
+        const exportBtn = document.getElementById('btn-export-excel');
+        if (exportBtn) exportBtn.classList.remove('hidden');
+    }
+  } catch(e) {
+      console.log('No previous plan found or error loading it:', e);
+  }
 });
