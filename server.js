@@ -148,7 +148,7 @@ const upload = multer({ dest: os.tmpdir() });
 const historyManager = require('./history_manager');
 
 // Load latest plan on startup
-const latestPlanFile = path.join(__dirname, 'latest_plan.json');
+const latestPlanFile = process.env.VERCEL ? '/tmp/latest_plan.json' : path.join(__dirname, 'latest_plan.json');
 if (fs.existsSync(latestPlanFile)) {
   try {
     const data = JSON.parse(fs.readFileSync(latestPlanFile, 'utf8'));
@@ -388,7 +388,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
       // Save to latest plan
       global.latestPlanResult = result;
       global.latestPlanDate = dateStr;
-      fs.writeFileSync(path.join(__dirname, 'latest_plan.json'), JSON.stringify({ result, date: dateStr }));
+      fs.writeFileSync(latestPlanFile, JSON.stringify({ result, date: dateStr }));
 
       // 5. Send success message (Summary)
       let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
