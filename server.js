@@ -266,7 +266,7 @@ function generateExcelBuffer(data) {
   XLSX.utils.book_append_sheet(wb, ws, "KeHoachLoTrinh");
   
   const doGanRows = [];
-  result.routes.forEach(r => {
+  data.routes.forEach(r => {
       r.schedule.forEach(s => {
           if (s.soList && s.soList.length > 0) {
               s.soList.forEach(so => {
