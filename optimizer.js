@@ -575,7 +575,7 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   for (const r of raw) {
     if (regionColumn) {
         const region = String(r[regionColumn] || '').trim().toLowerCase();
-        if (region !== 'việt trì' && region !== 'viet tri') continue;
+        if (!region.includes('việt trì') && !region.includes('viet tri')) continue;
     }
 
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
