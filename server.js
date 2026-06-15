@@ -264,6 +264,26 @@ function generateExcelBuffer(data) {
   const ws = XLSX.utils.json_to_sheet(rows);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, "KeHoachLoTrinh");
+  
+  const doGanRows = [];
+  result.routes.forEach(r => {
+      r.schedule.forEach(s => {
+          if (s.soList && s.soList.length > 0) {
+              s.soList.forEach(so => {
+                  doGanRows.push({
+                      'Tên cửa hàng': s.storeName,
+                      'SO_GXT_PTO': `${so}__GXT_PTO`
+                  });
+              });
+          }
+      });
+  });
+  
+  if (doGanRows.length > 0) {
+      const wsDoGan = XLSX.utils.json_to_sheet(doGanRows);
+      XLSX.utils.book_append_sheet(wb, wsDoGan, "DO Gán");
+  }
+
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 }
 
@@ -408,11 +428,6 @@ app.post('/api/telegram-webhook', async (req, res) => {
             const cbm = Math.round(s.cbm * 10) / 10;
             const sName = s.storeName.replace(/&/g, 'và').replace(/</g, '').replace(/>/g, '');
             routeText += `🔹 ${s.arrivalTime} - ${sName} (${kl}kg, ${cbm}m³)\n`;
-            if (s.soList && s.soList.length > 0) {
-               s.soList.forEach(so => {
-                  routeText += `      ${so}__GXT_PTO\n`;
-               });
-            }
             mapUrl += `/${s.lat},${s.lng}`;
          });
          

@@ -689,7 +689,7 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
       clusters.forEach((cl, idx) => {
           if (cl.length > 0) {
              remainingTrips.push({
-                 vehicleName: `Thuê ngoài ${idx + 1}`,
+                 vehicleName: `Xe nhà ${numInternal + idx + 1}`,
                  stops: cl,
                  totalWeight: cl.reduce((s, p) => s + p.weight, 0),
                  totalCbm: cl.reduce((s, p) => s + p.cbm, 0)

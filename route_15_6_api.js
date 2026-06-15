@@ -217,8 +217,8 @@ async function run(filePath, storeLocations, numInternal) {
   }
 
   await buildTrips(vietTriStops, GXT_DEPOT, 'GXT Việt Trì');
-  await buildTrips(lamThaoStops, SUPRA_DEPOT, 'Xe nhà 1 (Lâm Thao)', true);
-  await buildTrips(otherStops, SUPRA_DEPOT, 'Thuê ngoài');
+  await buildTrips(lamThaoStops, SUPRA_DEPOT, 'Xe nhà (Lâm Thao)', true);
+  await buildTrips(otherStops, SUPRA_DEPOT, 'Xe nhà');
 
   let totalW = allStops.reduce((s, p) => s + p.weight, 0);
   let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
