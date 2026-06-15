@@ -14,7 +14,7 @@ const fs = require('fs');
 // CONFIGURATION
 // ============================================================
 const CONFIG = {
-  DEPOT: { lat: 21.3882412, lng: 105.1797647, name: 'Kho Supra' },
+  DEPOT: { lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho Xuất Phát' },
   NUM_VEHICLES: 7,
   VEHICLE_CAPACITY_KG: 1900,
   VEHICLE_CAPACITY_CBM: 12,
@@ -565,7 +565,7 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   let wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
   const ws = wb.Sheets[wsName];
   const raw = XLSX.utils.sheet_to_json(ws);
-  if (raw.length === 0) return { routes: [], depot: storeLocations['Kho Supra - Phú Thọ'] || { lat: 21.3043611, lng: 105.4293889, name: 'Kho' }, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0, totalCbm: 0, totalDistance: 0 };
+  if (raw.length === 0) return { routes: [], depot: storeLocations['Kho Supra - Phú Thọ'] || { lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho' }, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0, totalCbm: 0, totalDistance: 0 };
 
   const firstRowKeys = Object.keys(raw[0]);
   const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';

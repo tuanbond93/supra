@@ -5,8 +5,8 @@ const { CONFIG } = require('./optimizer');
 
 const CAPACITY_KG = 1900;
 const CAPACITY_CBM = 12;
-const SUPRA_DEPOT = { lat: 21.3882412, lng: 105.1797647, name: 'Kho Supra' };
-const GXT_DEPOT = { lat: 21.3043611, lng: 105.4293889, name: 'Kho GXT Việt Trì' };
+const SUPRA_DEPOT = { lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho Xuất Phát' };
+const GXT_DEPOT = { lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho Xuất Phát' };
 
 function haversineDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;

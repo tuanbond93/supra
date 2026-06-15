@@ -2,7 +2,7 @@ const XLSX = require('xlsx');
 const fs = require('fs');
 
 const CONFIG = {
-  DEPOT: { lat: 21.3043611, lng: 105.4293889, name: 'Kho Supra - Phú Thọ' },
+  DEPOT: { lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho Xuất Phát' },
   START_TIME: 13 * 60, // 13:00 in minutes
   MAX_WORK_MINUTES: 6 * 60,
   SERVICE_TIME_MINUTES: 15,

@@ -337,7 +337,7 @@ function renderPlanDashboard(data) {
 
 function renderPlanMap(data) {
   if (!planMap) {
-      planMap = L.map('plan-map', { center: [21.3043611, 105.4293889], zoom: 10 });
+      planMap = L.map('plan-map', { center: [21.326576980287744, 105.32489178650769], zoom: 10 });
       L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>', maxZoom: 19,
       }).addTo(planMap);
@@ -470,7 +470,7 @@ function anim(id, val) { const el = document.getElementById(id); if (el) { el.te
 // INIT
 // ============================================================
 document.addEventListener('DOMContentLoaded', async () => {
-  renderPlanMap({ depot: {lat: 21.3043611, lng: 105.4293889, name: 'Kho Supra - Phú Thọ'}, routes: [] });
+  renderPlanMap({ depot: {lat: 21.326576980287744, lng: 105.32489178650769, name: 'Kho Xuất Phát'}, routes: [] });
   
   // Load latest plan if exists
   try {
