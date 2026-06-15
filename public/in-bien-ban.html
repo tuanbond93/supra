@@ -90,7 +90,7 @@ window.handlePdfFileUpload = function(event) {
             
             if (soIdx === -1 && (h.includes('so so') || h === 'so')) soIdx = i;
             if (doIdx === -1 && (h.includes('ma do') || h.includes('so do') || h === 'do')) doIdx = i;
-            if (pkgIdx === -1 && (h.includes('kien') || h.includes('package') || h === 'qty')) pkgIdx = i;
+            if (pkgIdx === -1 && (h.includes('kien') || h.includes('package'))) pkgIdx = i;
             if (storeIdIdx === -1 && (h.includes('ma sieu thi') || h.includes('store code') || h === 'mch' || h === 'store')) storeIdIdx = i;
             if (storeNameIdx === -1 && (h.includes('ten sieu thi') || h.includes('store name') || h.includes('ten cua hang'))) storeNameIdx = i;
             if (addressIdx === -1 && (h.includes('dia chi') || h.includes('address'))) addressIdx = i;
