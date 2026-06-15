@@ -493,3 +493,300 @@ document.addEventListener('DOMContentLoaded', async () => {
       console.log('No previous plan found or error loading it:', e);
   }
 });
+
+// ============================================================
+// PDF GENERATION LOGIC
+// ============================================================
+window.pdfStoresData = [];
+window.pdfSelectedStores = new Set();
+
+window.handlePdfFileUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        
+        let wsName = workbook.SheetNames.find(n => n.includes('Total')) || workbook.SheetNames[0];
+        const ws = workbook.Sheets[wsName];
+        
+        // Read with header: 1 to get array of arrays
+        const rawArray = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        if (rawArray.length < 2) return;
+        
+        const headerRow = rawArray[0];
+        // find indices if possible, or fallback to fixed indices
+        let soIdx = -1, doIdx = 3, pkgIdx = 7, storeIdIdx = -1, storeNameIdx = -1, addressIdx = -1;
+        
+        for (let i = 0; i < headerRow.length; i++) {
+            const h = String(headerRow[i] || '').toLowerCase();
+            if (h.includes('số so') || h === 'so') soIdx = i;
+            if (h.includes('mã siêu thị') || h === 'store code') storeIdIdx = i;
+            if (h.includes('tên siêu thị') || h.includes('store name') || h.includes('tên cửa hàng')) storeNameIdx = i;
+            if (h.includes('địa chỉ') || h.includes('address')) addressIdx = i;
+        }
+        
+        if (soIdx === -1) soIdx = 2; // fallback
+        if (storeIdIdx === -1) storeIdIdx = 0; // usually first column or we must search
+        
+        const storeMap = {};
+        
+        for (let r = 1; r < rawArray.length; r++) {
+            const row = rawArray[r];
+            if (!row || row.length === 0) continue;
+            
+            const soNum = String(row[soIdx] || '').trim();
+            const doNum = String(row[doIdx] || '').trim();
+            const pkgNum = String(row[pkgIdx] || '').trim();
+            
+            const sId = storeIdIdx !== -1 ? String(row[storeIdIdx] || '').trim() : '';
+            let sName = storeNameIdx !== -1 ? String(row[storeNameIdx] || '').trim() : '';
+            let sAddr = addressIdx !== -1 ? String(row[addressIdx] || '').trim() : '';
+            
+            if (!sName && !sId) continue;
+            const key = sId || sName;
+            
+            if (!storeMap[key]) {
+                storeMap[key] = {
+                    storeId: sId,
+                    storeName: sName,
+                    address: sAddr,
+                    items: []
+                };
+            }
+            
+            if (soNum || doNum || pkgNum) {
+                storeMap[key].items.push({ so: soNum, do: doNum, pkg: pkgNum });
+            }
+        }
+        
+        window.pdfStoresData = Object.values(storeMap).filter(s => s.items.length > 0);
+        window.pdfSelectedStores.clear();
+        renderPdfStoreList();
+    };
+    reader.readAsBinaryString(file);
+};
+
+window.renderPdfStoreList = function(searchTerm = '') {
+    const container = document.getElementById('pdf-store-list');
+    container.innerHTML = '';
+    
+    let filtered = window.pdfStoresData;
+    if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        filtered = filtered.filter(s => 
+            (s.storeId && s.storeId.toLowerCase().includes(lower)) || 
+            (s.storeName && s.storeName.toLowerCase().includes(lower))
+        );
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding: 20px;">Không tìm thấy cửa hàng nào</div>';
+    } else {
+        filtered.forEach(store => {
+            const isChecked = window.pdfSelectedStores.has(store.storeId || store.storeName);
+            const div = document.createElement('div');
+            div.style.padding = '8px';
+            div.style.borderBottom = '1px solid var(--border-color)';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.gap = '12px';
+            
+            const idKey = store.storeId || store.storeName;
+            
+            div.innerHTML = `
+                <input type="checkbox" id="chk-${idKey}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="chk-${idKey}" style="cursor: pointer; flex: 1;">
+                    <div style="font-weight: 600; color: var(--text-primary);">${store.storeId ? '[' + store.storeId + '] ' : ''}${store.storeName}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${store.items.length} đơn hàng (SO)</div>
+                </label>
+            `;
+            
+            div.querySelector('input').addEventListener('change', (e) => {
+                if (e.target.checked) window.pdfSelectedStores.add(idKey);
+                else window.pdfSelectedStores.delete(idKey);
+                updatePdfButtonState();
+            });
+            
+            container.appendChild(div);
+        });
+    }
+    
+    document.getElementById('pdf-store-count').textContent = `Tổng: ${window.pdfStoresData.length} cửa hàng`;
+    updatePdfButtonState();
+};
+
+window.filterPdfStores = function() {
+    const term = document.getElementById('pdf-search-store').value;
+    renderPdfStoreList(term);
+};
+
+window.selectAllStores = function(select) {
+    if (select) {
+        window.pdfStoresData.forEach(s => window.pdfSelectedStores.add(s.storeId || s.storeName));
+    } else {
+        window.pdfSelectedStores.clear();
+    }
+    renderPdfStoreList(document.getElementById('pdf-search-store').value);
+};
+
+window.updatePdfButtonState = function() {
+    const btn = document.getElementById('btn-generate-pdf');
+    if (window.pdfSelectedStores.size > 0) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = `Xuất PDF Biên Bản (${window.pdfSelectedStores.size} Cửa hàng)`;
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = `Xuất PDF Biên Bản`;
+    }
+};
+
+window.generatePdf = function() {
+    if (window.pdfSelectedStores.size === 0) return;
+    
+    // Gather selected data
+    const selectedData = window.pdfStoresData.filter(s => window.pdfSelectedStores.has(s.storeId || s.storeName));
+    
+    const driver = document.getElementById('pdf-driver').value || '.........................';
+    const vehicle = document.getElementById('pdf-vehicle').value || '.........................';
+    const phone = document.getElementById('pdf-phone').value || '.........................';
+    const tripCode = document.getElementById('pdf-tripcode').value || '.........................';
+    
+    // Get current date
+    const today = new Date();
+    const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth()+1).padStart(2, '0')}-${today.getFullYear()} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+    
+    // Build table body
+    const tableBody = [
+        [
+            { text: 'STT', style: 'tableHeader' },
+            { text: 'Mã SO', style: 'tableHeader' },
+            { text: 'Mã DO', style: 'tableHeader' },
+            { text: 'Số Kiện', style: 'tableHeader' },
+            { text: 'Số\nChecker', style: 'tableHeader' },
+            { text: 'MCH', style: 'tableHeader' },
+            { text: 'Địa Chỉ Cửa Hàng', style: 'tableHeader' },
+            { text: 'Thời gian hoàn thành đơn hàng', style: 'tableHeader' },
+            { text: 'Ghi chú', style: 'tableHeader' }
+        ]
+    ];
+    
+    let stt = 1;
+    let totalPkg = 0;
+    selectedData.forEach(store => {
+        store.items.forEach(item => {
+            let p = parseInt(item.pkg);
+            if (!isNaN(p)) totalPkg += p;
+            
+            tableBody.push([
+                { text: stt.toString(), alignment: 'center' },
+                { text: item.so || '', alignment: 'center' },
+                { text: item.do || '', alignment: 'center' },
+                { text: item.pkg || '', alignment: 'center' },
+                { text: '', alignment: 'center' }, // Checker
+                { text: store.storeId || '', alignment: 'center' },
+                { text: store.storeName + (store.address ? ' - ' + store.address : ''), alignment: 'center' },
+                { text: '', alignment: 'center' }, // Time
+                { text: '', alignment: 'center' }  // Note
+            ]);
+            stt++;
+        });
+    });
+    
+    const docDefinition = {
+        pageOrientation: 'landscape',
+        pageSize: 'A4',
+        pageMargins: [20, 30, 20, 30],
+        defaultStyle: {
+            fontSize: 10
+        },
+        content: [
+            {
+                columns: [
+                    { text: 'WinCommerce', style: 'logo' },
+                    { text: 'BIÊN BẢN GIAO HÀNG', style: 'header', alignment: 'center' },
+                    { text: '', width: 100 } // spacer to balance center
+                ],
+                margin: [0, 0, 0, 15]
+            },
+            {
+                table: {
+                    widths: ['35%', '35%', '30%'],
+                    body: [
+                        [
+                            { text: `Tên tài xế: ${driver}`, border: [true, true, true, true] },
+                            { text: `Ngày xuất: ${dateStr}`, border: [true, true, true, true] },
+                            { text: `Mã Chuyến: ${tripCode}`, border: [true, true, true, true] }
+                        ],
+                        [
+                            { text: `Số xe: ${vehicle}` },
+                            { text: `Tổng kiện: ${totalPkg}` },
+                            { text: 'Trọng Tải: ....................' }
+                        ],
+                        [
+                            { text: `SĐT Tài xế: ${phone}` },
+                            { text: 'Nhà Vận Chuyển: ...............' },
+                            { text: 'Lấy hàng thành công: ..........' }
+                        ]
+                    ]
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 1; },
+                    vLineWidth: function (i, node) { return 1; },
+                    hLineColor: function (i, node) { return '#333'; },
+                    vLineColor: function (i, node) { return '#333'; },
+                    paddingLeft: function(i, node) { return 8; },
+                    paddingRight: function(i, node) { return 8; },
+                    paddingTop: function(i, node) { return 4; },
+                    paddingBottom: function(i, node) { return 4; },
+                },
+                margin: [0, 0, 0, 15]
+            },
+            {
+                table: {
+                    headerRows: 1,
+                    widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', '*', '15%', '10%'],
+                    body: tableBody
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 1; },
+                    vLineWidth: function (i, node) { return 1; },
+                    hLineColor: function (i, node) { return '#666'; },
+                    vLineColor: function (i, node) { return '#666'; },
+                    paddingLeft: function(i, node) { return 4; },
+                    paddingRight: function(i, node) { return 4; },
+                    paddingTop: function(i, node) { return 6; },
+                    paddingBottom: function(i, node) { return 6; },
+                }
+            }
+        ],
+        styles: {
+            header: {
+                fontSize: 18,
+                bold: true,
+                margin: [0, 5, 0, 0]
+            },
+            logo: {
+                fontSize: 16,
+                bold: true,
+                italics: true,
+                color: '#d32f2f'
+            },
+            tableHeader: {
+                bold: true,
+                fontSize: 10,
+                color: 'black',
+                fillColor: '#eeeeee',
+                alignment: 'center'
+            }
+        }
+    };
+    
+    pdfMake.createPdf(docDefinition).download(`Bien_Ban_Giao_Hang_${vehicle || 'Trip'}.pdf`);
+};

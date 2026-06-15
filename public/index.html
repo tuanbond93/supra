@@ -9,6 +9,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,6 +31,7 @@
 
   <div class="tabs-container" style="background:var(--bg-card); padding: 0 24px; border-bottom: 1px solid var(--border-color); display:flex; gap:20px;">
     <button class="tab-btn active" onclick="switchTab('tab-plan')" style="background:none; border:none; color:var(--accent-teal); border-bottom:3px solid var(--accent-teal); padding:16px 8px; font-weight:700; font-size:1.05rem; cursor:pointer;">Kế Hoạch Lộ Trình</button>
+    <button class="tab-btn" onclick="switchTab('tab-pdf')" style="background:none; border:none; color:var(--text-secondary); border-bottom:3px solid transparent; padding:16px 8px; font-weight:600; font-size:1.05rem; cursor:pointer;">🖨️ In Biên Bản</button>
     <button class="tab-btn" onclick="switchTab('tab-trend')" style="background:none; border:none; color:var(--text-secondary); border-bottom:3px solid transparent; padding:16px 8px; font-weight:600; font-size:1.05rem; cursor:pointer;">📈 Xu Hướng Sản Lượng</button>
     <button class="tab-btn" onclick="switchTab('tab-log')" style="background:none; border:none; color:var(--text-secondary); border-bottom:3px solid transparent; padding:16px 8px; font-weight:600; font-size:1.05rem; cursor:pointer;">🕒 Lịch Sử Hệ Thống</button>
   </div>
@@ -114,6 +118,47 @@
     <h2 style="margin-bottom: 20px; color: var(--text-primary);">🕒 Lịch Sử Hệ Thống (Upload Log)</h2>
     <div id="log-content" style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:12px; padding:24px; min-height: 400px;">
       <p style="color:var(--text-secondary);">Đang tải dữ liệu...</p>
+    </div>
+  </main>
+
+  <!-- PDF TAB -->
+  <main id="tab-pdf" class="hidden" style="padding: 24px; overflow-y: auto; flex: 1; background: var(--bg-main);">
+    <h2 style="margin-bottom: 20px; color: var(--text-primary);">🖨️ In Biên Bản Giao Hàng</h2>
+    
+    <div style="display:flex; gap: 24px; flex-wrap: wrap;">
+      <!-- Left side: Form & Upload -->
+      <div style="flex: 1; min-width: 300px; background:var(--bg-card); padding:24px; border-radius:12px; border:1px solid var(--border-color);">
+        <h3 style="margin-bottom: 16px; color:var(--accent-teal);">1. Tải file Kế hoạch (Excel)</h3>
+        <input type="file" id="pdf-file-upload" accept=".xlsx,.xlsb" style="width:100%; margin-bottom: 24px; padding: 10px; border: 1px dashed var(--accent-teal); border-radius: 6px; background: rgba(20,184,166,0.05); color: var(--text-primary);" onchange="handlePdfFileUpload(event)">
+        
+        <h3 style="margin-bottom: 16px; color:var(--accent-teal);">2. Thông tin chuyến xe</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+           <input type="text" id="pdf-driver" placeholder="Tên tài xế" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-vehicle" placeholder="Số xe" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-phone" placeholder="SĐT Tài xế" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-tripcode" placeholder="Mã Chuyến" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+        </div>
+
+        <button id="btn-generate-pdf" class="btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; opacity: 0.5; cursor: not-allowed;" onclick="generatePdf()" disabled>
+          Xuất PDF Biên Bản
+        </button>
+      </div>
+
+      <!-- Right side: Store List -->
+      <div style="flex: 2; min-width: 400px; background:var(--bg-card); padding:24px; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction: column;">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+           <h3 style="color:var(--accent-teal); margin:0;">3. Chọn cửa hàng trong chuyến</h3>
+           <span id="pdf-store-count" style="color: var(--text-secondary); font-size: 0.9rem;">Chưa có dữ liệu</span>
+        </div>
+        <div style="margin-bottom: 12px; display:flex; gap: 8px;">
+           <input type="text" id="pdf-search-store" placeholder="Tìm tên/Mã cửa hàng..." style="flex:1; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary);" oninput="filterPdfStores()">
+           <button class="btn-secondary" onclick="selectAllStores(true)">Chọn hết</button>
+           <button class="btn-secondary" onclick="selectAllStores(false)">Bỏ chọn</button>
+        </div>
+        <div id="pdf-store-list" style="flex:1; border:1px solid var(--border-color); border-radius:6px; padding:12px; overflow-y: auto; max-height: 400px; background:var(--bg-main);">
+           <div style="color: var(--text-secondary); text-align: center; padding: 40px 0;">Vui lòng tải file Excel để hiện danh sách</div>
+        </div>
+      </div>
     </div>
   </main>
 

@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>In Biên Bản Giao Hàng</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+</head>
+<body style="background: var(--bg-main); padding: 20px;">
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <h2 style="margin-bottom: 20px; color: var(--text-primary); text-align: center; font-size: 24px; font-weight: bold;">🖨️ In Biên Bản Giao Hàng (Standalone)</h2>
+    
+    <div style="display:flex; gap: 24px; flex-wrap: wrap;">
+      <!-- Left side: Form & Upload -->
+      <div style="flex: 1; min-width: 300px; background:var(--bg-card); padding:24px; border-radius:12px; border:1px solid var(--border-color);">
+        <h3 style="margin-bottom: 16px; color:var(--accent-teal);">1. Tải file Kế hoạch (Excel)</h3>
+        <input type="file" id="pdf-file-upload" accept=".xlsx,.xlsb" style="width:100%; margin-bottom: 24px; padding: 10px; border: 1px dashed var(--accent-teal); border-radius: 6px; background: rgba(20,184,166,0.05); color: var(--text-primary);" onchange="handlePdfFileUpload(event)">
+        
+        <h3 style="margin-bottom: 16px; color:var(--accent-teal);">2. Thông tin chuyến xe</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px;">
+           <input type="text" id="pdf-driver" placeholder="Tên tài xế" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-vehicle" placeholder="Số xe" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-phone" placeholder="SĐT Tài xế" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+           <input type="text" id="pdf-tripcode" placeholder="Mã Chuyến" style="padding:10px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary); width:100%;">
+        </div>
+
+        <button id="btn-generate-pdf" class="btn-primary" style="width: 100%; padding: 14px; font-size: 1.1rem; opacity: 0.5; cursor: not-allowed;" onclick="generatePdf()" disabled>
+          Xuất PDF Biên Bản
+        </button>
+      </div>
+
+      <!-- Right side: Store List -->
+      <div style="flex: 2; min-width: 400px; background:var(--bg-card); padding:24px; border-radius:12px; border:1px solid var(--border-color); display:flex; flex-direction: column;">
+        <div style="display:flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+           <h3 style="color:var(--accent-teal); margin:0;">3. Chọn cửa hàng trong chuyến</h3>
+           <span id="pdf-store-count" style="color: var(--text-secondary); font-size: 0.9rem;">Chưa có dữ liệu</span>
+        </div>
+        <div style="margin-bottom: 12px; display:flex; gap: 8px;">
+           <input type="text" id="pdf-search-store" placeholder="Tìm tên/Mã cửa hàng..." style="flex:1; padding:8px 12px; border-radius:6px; border:1px solid var(--border-color); background:var(--bg-main); color:var(--text-primary);" oninput="filterPdfStores()">
+           <button class="btn-secondary" onclick="selectAllStores(true)">Chọn hết</button>
+           <button class="btn-secondary" onclick="selectAllStores(false)">Bỏ chọn</button>
+        </div>
+        <div id="pdf-store-list" style="flex:1; border:1px solid var(--border-color); border-radius:6px; padding:12px; overflow-y: auto; max-height: 400px; background:var(--bg-main);">
+           <div style="color: var(--text-secondary); text-align: center; padding: 40px 0;">Vui lòng tải file Excel để hiện danh sách</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+window.pdfStoresData = [];
+window.pdfSelectedStores = new Set();
+let logoBase64 = null;
+
+// Pre-load logo image
+fetch('/Logo_Wincommerce.png')
+  .then(response => response.blob())
+  .then(blob => {
+      const reader = new FileReader();
+      reader.onloadend = function() {
+          logoBase64 = reader.result;
+      }
+      reader.readAsDataURL(blob);
+  })
+  .catch(err => console.error('Error loading logo:', err));
+
+window.handlePdfFileUpload = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const data = e.target.result;
+        const workbook = XLSX.read(data, { type: 'binary' });
+        let wsName = workbook.SheetNames.find(n => n.includes('Total')) || workbook.SheetNames[0];
+        const ws = workbook.Sheets[wsName];
+        
+        const rawArray = XLSX.utils.sheet_to_json(ws, { header: 1 });
+        if (rawArray.length < 2) return;
+        
+        const headerRow = rawArray[0];
+        let soIdx = -1, doIdx = -1, pkgIdx = -1, storeIdIdx = -1, storeNameIdx = -1, addressIdx = -1;
+        
+        for (let i = 0; i < headerRow.length; i++) {
+            const rawH = String(headerRow[i] || '').toLowerCase();
+            const h = rawH.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            
+            if (soIdx === -1 && (h.includes('so so') || h === 'so')) soIdx = i;
+            if (doIdx === -1 && (h.includes('ma do') || h.includes('so do') || h === 'do')) doIdx = i;
+            if (pkgIdx === -1 && (h.includes('kien') || h.includes('package') || h === 'qty')) pkgIdx = i;
+            if (storeIdIdx === -1 && (h.includes('ma sieu thi') || h.includes('store code') || h === 'mch' || h === 'store')) storeIdIdx = i;
+            if (storeNameIdx === -1 && (h.includes('ten sieu thi') || h.includes('store name') || h.includes('ten cua hang'))) storeNameIdx = i;
+            if (addressIdx === -1 && (h.includes('dia chi') || h.includes('address'))) addressIdx = i;
+        }
+        
+        if (soIdx === -1) soIdx = 2; 
+        if (doIdx === -1) doIdx = 3; 
+        if (pkgIdx === -1) pkgIdx = 6; // Set fallback to 6 (Column G) since it's the common layout shown
+        if (storeIdIdx === -1) storeIdIdx = 4; // Fallback for store ID is usually column E
+        
+        const storeMap = {};
+        for (let r = 1; r < rawArray.length; r++) {
+            const row = rawArray[r];
+            if (!row || row.length === 0) continue;
+            
+            const soNum = String(row[soIdx] || '').trim();
+            const doNum = String(row[doIdx] || '').trim();
+            const pkgNum = String(row[pkgIdx] || '').trim();
+            const sId = storeIdIdx !== -1 ? String(row[storeIdIdx] || '').trim() : '';
+            let sName = storeNameIdx !== -1 ? String(row[storeNameIdx] || '').trim() : '';
+            let sAddr = addressIdx !== -1 ? String(row[addressIdx] || '').trim() : '';
+            
+            if (!sName && !sId) continue;
+            const key = sId || sName;
+            
+            if (!storeMap[key]) {
+                storeMap[key] = { storeId: sId, storeName: sName, address: sAddr, items: [] };
+            }
+            if (soNum || doNum || pkgNum) {
+                storeMap[key].items.push({ so: soNum, do: doNum, pkg: pkgNum });
+            }
+        }
+        
+        window.pdfStoresData = Object.values(storeMap).filter(s => s.items.length > 0);
+        window.pdfSelectedStores.clear();
+        renderPdfStoreList();
+    };
+    reader.readAsBinaryString(file);
+};
+
+window.renderPdfStoreList = function(searchTerm = '') {
+    const container = document.getElementById('pdf-store-list');
+    container.innerHTML = '';
+    
+    let filtered = window.pdfStoresData;
+    if (searchTerm) {
+        const lower = searchTerm.toLowerCase();
+        filtered = filtered.filter(s => 
+            (s.storeId && s.storeId.toLowerCase().includes(lower)) || 
+            (s.storeName && s.storeName.toLowerCase().includes(lower))
+        );
+    }
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-secondary); text-align:center; padding: 20px;">Không tìm thấy cửa hàng nào</div>';
+    } else {
+        filtered.forEach(store => {
+            const isChecked = window.pdfSelectedStores.has(store.storeId || store.storeName);
+            const div = document.createElement('div');
+            div.style.padding = '8px';
+            div.style.borderBottom = '1px solid var(--border-color)';
+            div.style.display = 'flex';
+            div.style.alignItems = 'center';
+            div.style.gap = '12px';
+            
+            const idKey = store.storeId || store.storeName;
+            
+            div.innerHTML = `
+                <input type="checkbox" id="chk-${idKey}" ${isChecked ? 'checked' : ''} style="width: 18px; height: 18px; cursor: pointer;">
+                <label for="chk-${idKey}" style="cursor: pointer; flex: 1;">
+                    <div style="font-weight: 600; color: var(--text-primary);">${store.storeId ? '[' + store.storeId + '] ' : ''}${store.storeName}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary);">${store.items.length} đơn hàng (SO)</div>
+                </label>
+            `;
+            
+            div.querySelector('input').addEventListener('change', (e) => {
+                if (e.target.checked) window.pdfSelectedStores.add(idKey);
+                else window.pdfSelectedStores.delete(idKey);
+                updatePdfButtonState();
+            });
+            container.appendChild(div);
+        });
+    }
+    document.getElementById('pdf-store-count').textContent = `Tổng: ${window.pdfStoresData.length} cửa hàng`;
+    updatePdfButtonState();
+};
+
+window.filterPdfStores = function() {
+    renderPdfStoreList(document.getElementById('pdf-search-store').value);
+};
+
+window.selectAllStores = function(select) {
+    if (select) {
+        window.pdfStoresData.forEach(s => window.pdfSelectedStores.add(s.storeId || s.storeName));
+    } else {
+        window.pdfSelectedStores.clear();
+    }
+    renderPdfStoreList(document.getElementById('pdf-search-store').value);
+};
+
+window.updatePdfButtonState = function() {
+    const btn = document.getElementById('btn-generate-pdf');
+    if (window.pdfSelectedStores.size > 0) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = `Xuất PDF Biên Bản (${window.pdfSelectedStores.size} Cửa hàng)`;
+    } else {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = `Xuất PDF Biên Bản`;
+    }
+};
+
+window.generatePdf = function() {
+    if (window.pdfSelectedStores.size === 0) return;
+    
+    const selectedData = window.pdfStoresData.filter(s => window.pdfSelectedStores.has(s.storeId || s.storeName));
+    
+    const driver = document.getElementById('pdf-driver').value || '.........................';
+    const vehicle = document.getElementById('pdf-vehicle').value || '.........................';
+    const phone = document.getElementById('pdf-phone').value || '.........................';
+    const tripCode = document.getElementById('pdf-tripcode').value || '.........................';
+    
+    const today = new Date();
+    const dateStr = `${String(today.getDate()).padStart(2, '0')}-${String(today.getMonth()+1).padStart(2, '0')}-${today.getFullYear()} ${String(today.getHours()).padStart(2, '0')}:${String(today.getMinutes()).padStart(2, '0')}`;
+    
+    const tableBody = [
+        [
+            { text: 'STT', style: 'tableHeader' },
+            { text: 'Mã SO', style: 'tableHeader' },
+            { text: 'Mã DO', style: 'tableHeader' },
+            { text: 'Số Kiện', style: 'tableHeader' },
+            { text: 'Số\nChecker', style: 'tableHeader' },
+            { text: 'MCH', style: 'tableHeader' },
+            { text: 'Địa Chỉ Cửa Hàng', style: 'tableHeader' },
+            { text: 'Thời gian hoàn thành đơn hàng', style: 'tableHeader' },
+            { text: 'Ghi chú', style: 'tableHeader' }
+        ]
+    ];
+    
+    let stt = 1;
+    let totalPkg = 0;
+    selectedData.forEach(store => {
+        store.items.forEach(item => {
+            let p = parseFloat(item.pkg);
+            if (!isNaN(p)) totalPkg += p;
+            
+            tableBody.push([
+                { text: stt.toString(), alignment: 'center' },
+                { text: item.so || '', alignment: 'center' },
+                { text: item.do || '', alignment: 'center' },
+                { text: item.pkg || '', alignment: 'center' },
+                { text: '', alignment: 'center' },
+                { text: store.storeId || '', alignment: 'center' },
+                { text: store.storeName + (store.address ? ' - ' + store.address : ''), alignment: 'center' },
+                { text: '', alignment: 'center' },
+                { text: '', alignment: 'center' }
+            ]);
+            stt++;
+        });
+    });
+    
+    const docDefinition = {
+        pageOrientation: 'landscape',
+        pageSize: 'A4',
+        pageMargins: [20, 30, 20, 30],
+        defaultStyle: {
+            fontSize: 10
+        },
+        content: [
+            {
+                columns: [
+                    logoBase64 ? { image: logoBase64, width: 140 } : { text: 'WinCommerce', style: 'logo' },
+                    { text: 'BIÊN BẢN GIAO HÀNG', style: 'header', alignment: 'center' },
+                    { text: '', width: 140 }
+                ],
+                margin: [0, 0, 0, 15]
+            },
+            {
+                table: {
+                    widths: ['35%', '35%', '30%'],
+                    body: [
+                        [
+                            { text: [{text: 'Tên tài xế: ', bold: true}, driver], border: [true, true, true, true] },
+                            { text: [{text: 'Ngày xuất: ', bold: true}, dateStr], border: [true, true, true, true] },
+                            { text: [{text: 'Mã Chuyến: ', bold: true}, tripCode], border: [true, true, true, true] }
+                        ],
+                        [
+                            { text: [{text: 'Số xe: ', bold: true}, vehicle] },
+                            { text: [{text: 'Tổng kiện: ', bold: true}, totalPkg.toString()] },
+                            { text: [{text: 'Trọng Tải: ', bold: true}, '....................'] }
+                        ],
+                        [
+                            { text: [{text: 'SĐT Tài xế: ', bold: true}, phone] },
+                            { text: [{text: 'Nhà Vận Chuyển: ', bold: true}, '...............'] },
+                            { text: [{text: 'Lấy hàng thành công: ', bold: true}, '..........'] }
+                        ]
+                    ]
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 1; },
+                    vLineWidth: function (i, node) { return 1; },
+                    hLineColor: function (i, node) { return '#333'; },
+                    vLineColor: function (i, node) { return '#333'; },
+                    paddingLeft: function(i, node) { return 8; },
+                    paddingRight: function(i, node) { return 8; },
+                    paddingTop: function(i, node) { return 4; },
+                    paddingBottom: function(i, node) { return 4; },
+                },
+                margin: [0, 0, 0, 15]
+            },
+            {
+                table: {
+                    headerRows: 1,
+                    widths: ['auto', 'auto', 'auto', 'auto', 'auto', 'auto', '*', '15%', '10%'],
+                    body: tableBody
+                },
+                layout: {
+                    hLineWidth: function (i, node) { return 1; },
+                    vLineWidth: function (i, node) { return 1; },
+                    hLineColor: function (i, node) { return '#666'; },
+                    vLineColor: function (i, node) { return '#666'; },
+                    paddingLeft: function(i, node) { return 4; },
+                    paddingRight: function(i, node) { return 4; },
+                    paddingTop: function(i, node) { return 6; },
+                    paddingBottom: function(i, node) { return 6; },
+                }
+            }
+        ],
+        styles: {
+            header: {
+                fontSize: 22,
+                bold: true,
+                margin: [0, 10, 0, 0]
+            },
+            logo: {
+                fontSize: 16,
+                bold: true,
+                italics: true,
+                color: '#d32f2f'
+            },
+            tableHeader: {
+                bold: true,
+                fontSize: 11,
+                color: 'black',
+                fillColor: '#eeeeee',
+                alignment: 'center'
+            }
+        }
+    };
+    
+    pdfMake.createPdf(docDefinition).download(`Bien_Ban_Giao_Hang_${vehicle || 'Trip'}.pdf`);
+};
+  </script>
+</body>
+</html>
