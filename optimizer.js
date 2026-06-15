@@ -326,7 +326,7 @@ function calculateSchedule(route, allPts, dm, durM) {
     drv += travel;
     if (drv >= CONFIG.REST_AFTER_HOURS * 60) { cur += CONFIG.REST_DURATION_MINUTES; drv = 0; }
     cur += travel;
-    sched.push({ order: i + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(dist * 100) / 100, travelMinutes: Math.round(travel * 10) / 10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm });
+    sched.push({ order: i + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(dist * 100) / 100, travelMinutes: Math.round(travel * 10) / 10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm, soList: pt.soList || [] });
     cur += CONFIG.SERVICE_TIME_MINUTES; prev = idx;
   }
   cur += durM[prev][0];

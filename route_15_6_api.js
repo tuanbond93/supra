@@ -180,7 +180,7 @@ async function run(filePath, storeLocations, numInternal) {
             const idx = opt.route[sIdx]; const pt = allPoints[idx];
             const travel = durationMatrix[prev][idx];
             cur += travel;
-            schedData.push({ order: sIdx + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(distMatrix[prev][idx]*100)/100, travelMinutes: Math.round(travel*10)/10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm });
+            schedData.push({ order: sIdx + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(distMatrix[prev][idx]*100)/100, travelMinutes: Math.round(travel*10)/10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm, soList: pt.soList || [] });
             cur += CONFIG.SERVICE_TIME_MINUTES;
             prev = idx;
           }
