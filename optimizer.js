@@ -564,11 +564,20 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   const wb = XLSX.readFile(filePath);
   let wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
   const ws = wb.Sheets[wsName];
+  const headersRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0] || [];
+  const soColumn = headersRow[2]; // Cột C
+  const regionColumn = headersRow[12]; // Cột M
+  
   const raw = XLSX.utils.sheet_to_json(ws);
 
   // 1. Parse Excel and aggregate by Store
   const byStore = {};
   for (const r of raw) {
+    if (regionColumn) {
+        const region = String(r[regionColumn] || '').trim().toLowerCase();
+        if (region !== 'việt trì' && region !== 'viet tri') continue;
+    }
+
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
     const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();
     const key = storeName || storeCode;
@@ -592,7 +601,8 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
            weight: 0,
            cbm: 0,
            orders: 0,
-           pieces: 0
+           pieces: 0,
+           soList: []
         };
       }
     }
@@ -601,6 +611,13 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
       byStore[key].cbm += parseFloat(r['Volume'] || r['Thể tích'] || 0) || 0;
       byStore[key].orders += 1;
       byStore[key].pieces += parseInt(r['Qty'] || 0) || 0;
+      
+      if (soColumn && r[soColumn]) {
+        const soNum = String(r[soColumn]).trim();
+        if (soNum && !byStore[key].soList.includes(soNum)) {
+            byStore[key].soList.push(soNum);
+        }
+      }
     }
   }
 

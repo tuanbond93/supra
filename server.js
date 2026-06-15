@@ -408,6 +408,11 @@ app.post('/api/telegram-webhook', async (req, res) => {
             const cbm = Math.round(s.cbm * 10) / 10;
             const sName = s.storeName.replace(/&/g, 'và').replace(/</g, '').replace(/>/g, '');
             routeText += `🔹 ${s.arrivalTime} - ${sName} (${kl}kg, ${cbm}m³)\n`;
+            if (s.soList && s.soList.length > 0) {
+               s.soList.forEach(so => {
+                  routeText += `      ${so}__GXT_PTO\n`;
+               });
+            }
             mapUrl += `/${s.lat},${s.lng}`;
          });
          

@@ -44,10 +44,20 @@ async function run(filePath, storeLocations, numInternal) {
   const wb = XLSX.readFile(filePath);
   const wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
   const ws = wb.Sheets[wsName];
+  
+  const headersRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0] || [];
+  const soColumn = headersRow[2]; // Cột C
+  const regionColumn = headersRow[12]; // Cột M
+  
   const raw = XLSX.utils.sheet_to_json(ws);
 
   const byStore = {};
   for (const r of raw) {
+    if (regionColumn) {
+        const region = String(r[regionColumn] || '').trim().toLowerCase();
+        if (region !== 'việt trì' && region !== 'viet tri') continue;
+    }
+
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
     const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();
     const key = storeName || storeCode;
@@ -64,10 +74,17 @@ async function run(filePath, storeLocations, numInternal) {
           }
       }
       if (!loc) loc = { address: 'Không rõ', lat: 21.35, lng: 105.25 };
-      byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0 };
+      byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0, soList: [] };
     }
     byStore[key].weight += parseFloat(r['Weight'] || r['Trọng lượng'] || 0) || 0;
     byStore[key].cbm += parseFloat(r['Volume'] || r['Thể tích'] || 0) || 0;
+    
+    if (soColumn && r[soColumn]) {
+        const soNum = String(r[soColumn]).trim();
+        if (soNum && !byStore[key].soList.includes(soNum)) {
+            byStore[key].soList.push(soNum);
+        }
+    }
   }
 
   const allStops = Object.values(byStore).filter(s => s.weight > 0 || s.cbm > 0);
