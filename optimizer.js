@@ -564,17 +564,18 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   const wb = XLSX.readFile(filePath);
   let wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
   const ws = wb.Sheets[wsName];
-  const headersRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0] || [];
-  const soColumn = headersRow[2]; // Cột C
-  const regionColumn = headersRow[12]; // Cột M
-  
   const raw = XLSX.utils.sheet_to_json(ws);
+  if (raw.length === 0) return { routes: [], depot: storeLocations['Kho Supra - Phú Thọ'] || { lat: 21.3043611, lng: 105.4293889, name: 'Kho' }, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0, totalCbm: 0, totalDistance: 0 };
+
+  const firstRowKeys = Object.keys(raw[0]);
+  const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
+  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || firstRowKeys[12] || 'Quận';
 
   // 1. Parse Excel and aggregate by Store
   const byStore = {};
   for (const r of raw) {
     if (regionColumn) {
-        const region = String(r[regionColumn] || '').trim().toLowerCase();
+        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim().toLowerCase();
         if (!region.includes('việt trì') && !region.includes('viet tri')) continue;
     }
 

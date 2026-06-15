@@ -45,16 +45,18 @@ async function run(filePath, storeLocations, numInternal) {
   const wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
   const ws = wb.Sheets[wsName];
   
-  const headersRow = XLSX.utils.sheet_to_json(ws, { header: 1 })[0] || [];
-  const soColumn = headersRow[2]; // Cột C
-  const regionColumn = headersRow[12]; // Cột M
-  
   const raw = XLSX.utils.sheet_to_json(ws);
+  if (raw.length === 0) return { routes: [], depot: SUPRA_DEPOT, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0 };
+
+  const firstRowKeys = Object.keys(raw[0]);
+  // Try to find SO column (usually contains 'SO' or is the 3rd column if STT is 1st)
+  const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
+  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || firstRowKeys[12] || 'Quận';
 
   const byStore = {};
   for (const r of raw) {
     if (regionColumn) {
-        const region = String(r[regionColumn] || '').trim().toLowerCase();
+        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim().toLowerCase();
         if (!region.includes('việt trì') && !region.includes('viet tri')) continue;
     }
 
