@@ -272,7 +272,7 @@ function generateExcelBuffer(data) {
               s.soList.forEach(so => {
                   doGanRows.push({
                       'Tên cửa hàng': s.storeName,
-                      'SO_GXT_PTO': `${so}__GXT_PTO`
+                      'SO_GXT_PTO': `${so}_GXT_PTO`
                   });
               });
           }
