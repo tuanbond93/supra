@@ -177,12 +177,8 @@ app.post('/api/plan', upload.single('planFile'), async (req, res) => {
     console.log(`\n🚚 Processing Uploaded Plan: ${selectedFile}...`);
     
     let result;
-    if (selectedFile.includes('15.6') || selectedFile.includes('15 ')) {
-      console.log(`   🔄 Áp dụng logic tách cụm Việt Trì (GXT) cho ngày 15.6`);
-      result = await require('./route_15_6_api').run(targetFile, storeLocations, numInternal);
-    } else {
-      result = await optimizeVehiclePlan(targetFile, storeLocations, numInternal);
-    }
+    console.log(`   🔄 Áp dụng logic tách cụm Việt Trì (GXT)`);
+    result = await require('./route_15_6_api').run(targetFile, storeLocations, numInternal);
     
     try { fs.unlinkSync(targetFile); } catch(e) {}
     
@@ -394,11 +390,8 @@ app.post('/api/telegram-webhook', async (req, res) => {
       
       const numInternal = 2;
       let result;
-      if (doc.file_name.includes('15.6') || doc.file_name.includes('15 ')) {
-          result = await require('./route_15_6_api').run(tempFile, storeLocations, numInternal);
-      } else {
-          result = await optimizeVehiclePlan(tempFile, storeLocations, numInternal);
-      }
+      // Default to new API for all requests
+      result = await require('./route_15_6_api').run(tempFile, storeLocations, numInternal);
       
       // 4. Update history
       const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
