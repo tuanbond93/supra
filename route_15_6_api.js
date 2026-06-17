@@ -239,11 +239,9 @@ async function run(filePath, storeLocations, numInternal) {
   }
 
   await buildTrips(vietTriStops, GXT_DEPOT, 'GXT Việt Trì');
-  await buildTrips(lamThaoStops, SUPRA_DEPOT, 'Xe nhà (Lâm Thao)', true);
-  await buildTrips(otherStops, SUPRA_DEPOT, 'Xe nhà');
 
-  let totalW = allStops.reduce((s, p) => s + p.weight, 0);
-  let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
+  let totalW = vietTriStops.reduce((s, p) => s + p.weight, 0);
+  let totalC = vietTriStops.reduce((s, p) => s + p.cbm, 0);
 
   const maxRet = parseTime(CONFIG.MAX_RETURN_TIME);
   let warnings = [];
@@ -254,8 +252,8 @@ async function run(filePath, storeLocations, numInternal) {
   });
 
   return {
-    config: CONFIG, depot: SUPRA_DEPOT,
-    totalStops: allStops.length, totalVehiclesUsed: finalRoutes.length,
+    config: CONFIG, depot: GXT_DEPOT,
+    totalStops: vietTriStops.length, totalVehiclesUsed: finalRoutes.length,
     suggestedVehicles: finalRoutes.length, additionalVehiclesNeeded: 0,
     totalDistance: Math.round(finalRoutes.reduce((s, r) => s + r.totalDistance, 0) * 100) / 100,
     totalWeight: Math.round(totalW * 100) / 100, totalCbm: Math.round(totalC * 100) / 100,
