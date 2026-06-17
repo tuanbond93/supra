@@ -42,25 +42,47 @@ async function fetchOSRMTable(points) {
 
 async function run(filePath, storeLocations, numInternal) {
   const wb = XLSX.readFile(filePath);
-  const wsName = wb.SheetNames.find(n => n.includes('Total')) || wb.SheetNames[0];
-  const ws = wb.Sheets[wsName];
   
-  const raw = XLSX.utils.sheet_to_json(ws);
+  function findValidSheet(wb) {
+      const candidates = [...wb.SheetNames].sort((a, b) => {
+          const aScore = (a.toLowerCase().includes('total') || a.toLowerCase().includes('do')) ? 1 : 0;
+          const bScore = (b.toLowerCase().includes('total') || b.toLowerCase().includes('do')) ? 1 : 0;
+          return bScore - aScore;
+      });
+
+      for (const name of candidates) {
+          const ws = wb.Sheets[name];
+          const raw2d = XLSX.utils.sheet_to_json(ws, { header: 1 });
+          for (let i = 0; i < Math.min(raw2d.length, 20); i++) {
+              const row = raw2d[i] || [];
+              const hasHeader = row.some(cell => {
+                  if (typeof cell !== 'string') return false;
+                  const low = cell.toLowerCase().trim();
+                  return low.includes('tên siêu thị') || low.includes('tên cửa hàng') || low.includes('store name') || low.includes('mã siêu thị');
+              });
+              if (hasHeader) {
+                  return { name, ws, headerRowIdx: i };
+              }
+          }
+      }
+      return null;
+  }
+
+  const validSheetInfo = findValidSheet(wb);
+  if (!validSheetInfo) {
+      return { routes: [], depot: SUPRA_DEPOT, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0 };
+  }
+
+  const { ws, headerRowIdx } = validSheetInfo;
+  const raw = XLSX.utils.sheet_to_json(ws, { range: headerRowIdx, defval: "" });
   if (raw.length === 0) return { routes: [], depot: SUPRA_DEPOT, totalStops: 0, totalVehiclesUsed: 0, totalWeight: 0 };
 
   const firstRowKeys = Object.keys(raw[0]);
   // Try to find SO column (usually contains 'SO' or is the 3rd column if STT is 1st)
   const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
-  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || firstRowKeys[12] || 'Quận';
-
   const byStore = {};
   for (const r of raw) {
-    if (regionColumn) {
-        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim().toLowerCase();
-        if (!region.includes('việt trì') && !region.includes('viet tri')) continue;
-    }
-
-    const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
+    const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'];
     const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();
     const key = storeName || storeCode;
     if (!key || key === 'undefined') continue;
