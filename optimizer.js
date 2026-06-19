@@ -569,13 +569,16 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
 
   const firstRowKeys = Object.keys(raw[0]);
   const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
-  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || firstRowKeys[12] || 'Quận';
+  const regionColumn = firstRowKeys.find(k => {
+      const norm = k.normalize('NFC').toLowerCase();
+      return norm.includes('quận') || norm.includes('khu vực');
+  }) || firstRowKeys[12] || 'Quận';
 
   // 1. Parse Excel and aggregate by Store
   const byStore = {};
   for (const r of raw) {
     if (regionColumn) {
-        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim().toLowerCase();
+        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').normalize('NFC').trim().toLowerCase();
         if (!region.includes('việt trì') && !region.includes('viet tri')) continue;
     }
 

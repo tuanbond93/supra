@@ -79,8 +79,14 @@ async function run(filePath, storeLocations, numInternal) {
 
   const firstRowKeys = Object.keys(raw[0]);
   // Try to find SO column (usually contains 'SO' or is the 3rd column if STT is 1st)
-  const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
-  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || 'Quận';
+  const soColumn = firstRowKeys.find(k => {
+      const norm = k.normalize('NFC').toLowerCase();
+      return norm.includes('số so') || norm === 'so';
+  }) || firstRowKeys[2] || 'Số SO';
+  const regionColumn = firstRowKeys.find(k => {
+      const norm = k.normalize('NFC').toLowerCase();
+      return norm.includes('quận') || norm.includes('khu vực');
+  }) || 'Quận';
   const byStore = {};
   for (const r of raw) {
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'];
@@ -119,7 +125,7 @@ async function run(filePath, storeLocations, numInternal) {
   const lamThaoStops = [];
   const otherStops = [];
   for (const s of allStops) {
-      const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).toLowerCase();
+      const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
       if (txt.includes('việt trì') || txt.includes('viet tri')) {
           vietTriStops.push(s);
       } else if (txt.includes('lâm thao') || txt.includes('lam thao')) {
