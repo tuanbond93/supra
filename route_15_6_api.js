@@ -80,10 +80,12 @@ async function run(filePath, storeLocations, numInternal) {
   const firstRowKeys = Object.keys(raw[0]);
   // Try to find SO column (usually contains 'SO' or is the 3rd column if STT is 1st)
   const soColumn = firstRowKeys.find(k => k.toLowerCase().includes('số so') || k === 'SO') || firstRowKeys[2] || 'Số SO';
+  const regionColumn = firstRowKeys.find(k => k.toLowerCase().includes('quận') || k.toLowerCase().includes('khu vực')) || 'Quận';
   const byStore = {};
   for (const r of raw) {
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'];
     const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();
+    const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim();
     const key = storeName || storeCode;
     if (!key || key === 'undefined') continue;
 
@@ -98,7 +100,7 @@ async function run(filePath, storeLocations, numInternal) {
           }
       }
       if (!loc) loc = { address: 'Không rõ', lat: 21.35, lng: 105.25 };
-      byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0, soList: [] };
+      byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, region: region, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0, soList: [] };
     }
     byStore[key].weight += parseFloat(r['Weight'] || r['Trọng lượng'] || 0) || 0;
     byStore[key].cbm += parseFloat(r['Volume'] || r['Thể tích'] || 0) || 0;
@@ -117,7 +119,7 @@ async function run(filePath, storeLocations, numInternal) {
   const lamThaoStops = [];
   const otherStops = [];
   for (const s of allStops) {
-      const txt = (s.name + ' ' + s.address).toLowerCase();
+      const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).toLowerCase();
       if (txt.includes('việt trì') || txt.includes('viet tri')) {
           vietTriStops.push(s);
       } else if (txt.includes('lâm thao') || txt.includes('lam thao')) {
