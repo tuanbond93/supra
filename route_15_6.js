@@ -186,6 +186,10 @@ async function run15_6() {
               currentC += bestStop.cbm;
               unassigned.splice(bestIdx, 1);
           } else {
+              if (currentTrip.length === 0) {
+                  currentTrip.push(unassigned[0]);
+                  unassigned.splice(0, 1);
+              }
               trips.push(currentTrip);
               currentTrip = []; currentW = 0; currentC = 0;
           }
