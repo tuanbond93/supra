@@ -58,7 +58,7 @@ async function run(filePath, storeLocations, numInternal) {
               const hasHeader = row.some(cell => {
                   if (typeof cell !== 'string') return false;
                   const low = cell.toLowerCase().trim();
-                  return low.includes('tên siêu thị') || low.includes('tên cửa hàng') || low.includes('store name') || low.includes('mã siêu thị');
+                  return low.includes('tên siêu thị') || low.includes('tên cửa hàng') || low.includes('store name') || low.includes('mã siêu thị') || low.includes('tên người nhận') || low.includes('khách hàng') || low.includes('điểm giao') || low.includes('tên kh') || low.includes('mã kh') || low.includes('mã ch');
               });
               if (hasHeader) {
                   return { name, ws, headerRowIdx: i };
@@ -89,8 +89,8 @@ async function run(filePath, storeLocations, numInternal) {
   }) || 'Quận';
   const byStore = {};
   for (const r of raw) {
-    const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'];
-    const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();
+    const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'] || r['Tên người nhận'] || r['Khách hàng'] || r['Tên KH'] || r['Điểm giao'];
+    const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || r['Mã KH'] || r['Mã CH'] || '').trim();
     const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').trim();
     const key = storeName || storeCode;
     if (!key || key === 'undefined') continue;
@@ -108,8 +108,8 @@ async function run(filePath, storeLocations, numInternal) {
       if (!loc) loc = { address: 'Không rõ', lat: 21.35, lng: 105.25 };
       byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, region: region, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0, soList: [] };
     }
-    byStore[key].weight += parseFloat(r['Weight'] || r['Trọng lượng'] || 0) || 0;
-    byStore[key].cbm += parseFloat(r['Volume'] || r['Thể tích'] || 0) || 0;
+    byStore[key].weight += parseFloat(r['Weight'] || r['Trọng lượng'] || r['Khối lượng'] || r['Cân nặng'] || r['Weight (kg)'] || r['Trọng lượng (kg)'] || 0) || 0;
+    byStore[key].cbm += parseFloat(r['Volume'] || r['Volume up (m3)'] || r['Thể tích'] || r['Thể tích (m3)'] || r['Volume (m3)'] || r['CBM'] || r['m3'] || 0) || 0;
     
     if (soColumn && r[soColumn]) {
         const soNum = String(r[soColumn]).trim();
@@ -251,9 +251,12 @@ async function run(filePath, storeLocations, numInternal) {
   }
 
   await buildTrips(vietTriStops, GXT_DEPOT, 'GXT Việt Trì');
+  await buildTrips(lamThaoStops, SUPRA_DEPOT, 'Supra Lâm Thao');
+  await buildTrips(otherStops, SUPRA_DEPOT, 'Supra Khác');
 
-  let totalW = vietTriStops.reduce((s, p) => s + p.weight, 0);
-  let totalC = vietTriStops.reduce((s, p) => s + p.cbm, 0);
+  let totalW = allStops.reduce((s, p) => s + p.weight, 0);
+  let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
+  let totalStopsCount = allStops.length;
 
   const maxRet = parseTime(CONFIG.MAX_RETURN_TIME);
   let warnings = [];
@@ -265,7 +268,7 @@ async function run(filePath, storeLocations, numInternal) {
 
   return {
     config: CONFIG, depot: GXT_DEPOT,
-    totalStops: vietTriStops.length, totalVehiclesUsed: finalRoutes.length,
+    totalStops: totalStopsCount, totalVehiclesUsed: finalRoutes.length,
     suggestedVehicles: finalRoutes.length, additionalVehiclesNeeded: 0,
     totalDistance: Math.round(finalRoutes.reduce((s, r) => s + r.totalDistance, 0) * 100) / 100,
     totalWeight: Math.round(totalW * 100) / 100, totalCbm: Math.round(totalC * 100) / 100,
