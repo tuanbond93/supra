@@ -5,3 +5,5 @@ upload_log.json
 .DS_Store
 *.tmp
 *.log
+
+.vercel

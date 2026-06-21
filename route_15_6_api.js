@@ -251,12 +251,10 @@ async function run(filePath, storeLocations, numInternal) {
   }
 
   await buildTrips(vietTriStops, GXT_DEPOT, 'GXT Việt Trì');
-  await buildTrips(lamThaoStops, SUPRA_DEPOT, 'Supra Lâm Thao');
-  await buildTrips(otherStops, SUPRA_DEPOT, 'Supra Khác');
 
-  let totalW = allStops.reduce((s, p) => s + p.weight, 0);
-  let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
-  let totalStopsCount = allStops.length;
+  let totalW = vietTriStops.reduce((s, p) => s + p.weight, 0);
+  let totalC = vietTriStops.reduce((s, p) => s + p.cbm, 0);
+  let totalStopsCount = vietTriStops.length;
 
   const maxRet = parseTime(CONFIG.MAX_RETURN_TIME);
   let warnings = [];
