@@ -126,7 +126,7 @@ async function run(filePath, storeLocations, numInternal) {
   const otherStops = [];
   for (const s of allStops) {
       const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
-      if (txt.includes('việt trì') || txt.includes('viet tri')) {
+      if (txt.includes('việt trì') || txt.includes('viet tri') || txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho')) {
           vietTriStops.push(s);
       } else if (txt.includes('lâm thao') || txt.includes('lam thao')) {
           lamThaoStops.push(s);

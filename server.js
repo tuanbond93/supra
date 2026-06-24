@@ -178,6 +178,7 @@ app.post('/api/plan', upload.single('planFile'), async (req, res) => {
     
     let result;
     console.log(`   🔄 Áp dụng logic tách cụm Việt Trì (GXT)`);
+    delete require.cache[require.resolve('./route_15_6_api')];
     result = await require('./route_15_6_api').run(targetFile, storeLocations, numInternal);
     
     try { fs.unlinkSync(targetFile); } catch(e) {}

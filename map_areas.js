@@ -71,7 +71,7 @@ const results = storesData.map(s => {
     }
   } else {
     // If no district found, default to 'Chưa mở' to be safe, or 'Đã mở' if it's Việt Trì (usually implicitly Việt Trì if missing)
-    if (address.includes('việt trì') || name.includes('việt trì')) status = 'Đã mở';
+    if (address.includes('việt trì') || name.includes('việt trì') || address.includes('tx. phú thọ') || name.includes('tx. phú thọ') || address.includes('thị xã phú thọ') || name.includes('thị xã phú thọ') || address.includes('tx phu tho') || name.includes('tx phu tho') || address.includes('thi xa phu tho') || name.includes('thi xa phu tho')) status = 'Đã mở';
     else status = 'Chưa mở';
   }
   
