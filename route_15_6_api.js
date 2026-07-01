@@ -127,7 +127,8 @@ async function run(filePath, storeLocations, numInternal) {
       const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
       if (txt.includes('việt trì') || txt.includes('viet tri') || 
           txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
-          txt.includes('lâm thao') || txt.includes('lam thao')) {
+          txt.includes('lâm thao') || txt.includes('lam thao') ||
+          txt.includes('tam nông') || txt.includes('tam nong')) {
           vietTriStops.push(s);
       } else {
           otherStops.push(s);

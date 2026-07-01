@@ -112,7 +112,8 @@ function mapStoreStatuses(mainFilePath, areasFilePath) {
       status = (address.includes('việt trì') || name.includes('việt trì') || 
                 address.includes('tx. phú thọ') || name.includes('tx. phú thọ') || address.includes('thị xã phú thọ') || name.includes('thị xã phú thọ') || 
                 address.includes('tx phu tho') || name.includes('tx phu tho') || address.includes('thi xa phu tho') || name.includes('thi xa phu tho') ||
-                address.includes('lâm thao') || name.includes('lâm thao') || address.includes('lam thao') || name.includes('lam thao')) ? 'Đã mở' : 'Chưa mở';
+                address.includes('lâm thao') || name.includes('lâm thao') || address.includes('lam thao') || name.includes('lam thao') ||
+                address.includes('tam nông') || name.includes('tam nông') || address.includes('tam nong') || name.includes('tam nong')) ? 'Đã mở' : 'Chưa mở';
     }
     
     return {

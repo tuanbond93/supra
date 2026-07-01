@@ -146,7 +146,8 @@ async function run15_6() {
       const txt = (s.name + ' ' + s.address).toLowerCase();
       if (txt.includes('việt trì') || txt.includes('viet tri') || 
           txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
-          txt.includes('lâm thao') || txt.includes('lam thao')) {
+          txt.includes('lâm thao') || txt.includes('lam thao') ||
+          txt.includes('tam nông') || txt.includes('tam nong')) {
           vietTriStops.push(s);
       } else {
           otherStops.push(s);
