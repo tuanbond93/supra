@@ -122,14 +122,13 @@ async function run(filePath, storeLocations, numInternal) {
   const allStops = Object.values(byStore).filter(s => s.weight > 0 || s.cbm > 0);
   
   const vietTriStops = [];
-  const lamThaoStops = [];
   const otherStops = [];
   for (const s of allStops) {
       const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
-      if (txt.includes('việt trì') || txt.includes('viet tri') || txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho')) {
+      if (txt.includes('việt trì') || txt.includes('viet tri') || 
+          txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
+          txt.includes('lâm thao') || txt.includes('lam thao')) {
           vietTriStops.push(s);
-      } else if (txt.includes('lâm thao') || txt.includes('lam thao')) {
-          lamThaoStops.push(s);
       } else {
           otherStops.push(s);
       }

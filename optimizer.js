@@ -579,7 +579,9 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   for (const r of raw) {
     if (regionColumn) {
         const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').normalize('NFC').trim().toLowerCase();
-        if (!region.includes('việt trì') && !region.includes('viet tri') && !region.includes('tx. phú thọ') && !region.includes('thị xã phú thọ') && !region.includes('tx phu tho') && !region.includes('thi xa phu tho')) continue;
+        if (!region.includes('việt trì') && !region.includes('viet tri') && 
+            !region.includes('tx. phú thọ') && !region.includes('thị xã phú thọ') && !region.includes('tx phu tho') && !region.includes('thi xa phu tho') &&
+            !region.includes('lâm thao') && !region.includes('lam thao')) continue;
     }
 
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];

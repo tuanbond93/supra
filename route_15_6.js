@@ -144,7 +144,9 @@ async function run15_6() {
   // Custom grouping: if address or name contains Viet Tri
   for (const s of allStops) {
       const txt = (s.name + ' ' + s.address).toLowerCase();
-      if (txt.includes('việt trì') || txt.includes('viet tri') || txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho')) {
+      if (txt.includes('việt trì') || txt.includes('viet tri') || 
+          txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
+          txt.includes('lâm thao') || txt.includes('lam thao')) {
           vietTriStops.push(s);
       } else {
           otherStops.push(s);
