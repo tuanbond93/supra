@@ -87,6 +87,13 @@ async function run(filePath, storeLocations, numInternal) {
       const norm = k.normalize('NFC').toLowerCase();
       return norm.includes('quận') || norm.includes('khu vực');
   }) || 'Quận';
+  const normalizeProvince = (provStr) => {
+    if (!provStr) return '';
+    let p = provStr.normalize('NFC').toLowerCase();
+    p = p.replace(/^(t\.|tỉnh)\s+/i, '').trim();
+    return p.split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  };
+
   const byStore = {};
   for (const r of raw) {
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'] || r['Tên cửa hàng'] || r['Tên người nhận'] || r['Khách hàng'] || r['Tên KH'] || r['Điểm giao'];
@@ -106,7 +113,41 @@ async function run(filePath, storeLocations, numInternal) {
           }
       }
       if (!loc) loc = { address: 'Không rõ', lat: 21.35, lng: 105.25 };
-      byStore[key] = { storeId: storeCode, name: storeName, address: loc.address, region: region, lat: loc.lat, lng: loc.lng, weight: 0, cbm: 0, soList: [] };
+      
+      // Determine province
+      let province = loc && loc.province ? loc.province : '';
+      if (!province) {
+          const provinceColumn = firstRowKeys.find(k => {
+              const norm = k.normalize('NFC').toLowerCase();
+              return norm.includes('tỉnh') || norm.includes('tính') || norm.includes('province');
+          });
+          if (provinceColumn && r[provinceColumn]) {
+              province = normalizeProvince(String(r[provinceColumn]));
+          }
+      }
+      if (!province) {
+          const txt = (storeName + ' ' + loc.address + ' ' + region).normalize('NFC').toLowerCase();
+          if (txt.includes('sơn la') || txt.includes('son la')) {
+              province = 'Sơn La';
+          } else if (txt.includes('phú thọ') || txt.includes('phu tho') || txt.includes('phù ninh') || txt.includes('phu ninh')) {
+              province = 'Phú Thọ';
+          } else {
+              province = 'Phú Thọ'; // default
+          }
+      }
+
+      byStore[key] = { 
+          storeId: storeCode, 
+          name: storeName, 
+          address: loc.address, 
+          region: region, 
+          lat: loc.lat, 
+          lng: loc.lng, 
+          weight: 0, 
+          cbm: 0, 
+          soList: [],
+          province: province
+      };
     }
     byStore[key].weight += parseFloat(r['Weight'] || r['Trọng lượng'] || r['Khối lượng'] || r['Cân nặng'] || r['Weight (kg)'] || r['Trọng lượng (kg)'] || 0) || 0;
     byStore[key].cbm += parseFloat(r['Volume'] || r['Volume up (m3)'] || r['Thể tích'] || r['Thể tích (m3)'] || r['Volume (m3)'] || r['CBM'] || r['m3'] || 0) || 0;
@@ -121,23 +162,26 @@ async function run(filePath, storeLocations, numInternal) {
 
   const allStops = Object.values(byStore).filter(s => s.weight > 0 || s.cbm > 0);
   
-  const vietTriStops = [];
-  const otherStops = [];
+  const stopsByProvince = {};
   for (const s of allStops) {
-      const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
-      if (txt.includes('việt trì') || txt.includes('viet tri') || 
-          txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
-          txt.includes('lâm thao') || txt.includes('lam thao') ||
-          txt.includes('tam nông') || txt.includes('tam nong')) {
-          vietTriStops.push(s);
-      } else {
-          otherStops.push(s);
+      const prov = s.province || 'Phú Thọ';
+      if (!stopsByProvince[prov]) {
+          stopsByProvince[prov] = [];
       }
+      stopsByProvince[prov].push(s);
   }
+
+  const provinces = Object.keys(stopsByProvince).sort((a, b) => {
+      if (a === 'Phú Thọ') return -1;
+      if (b === 'Phú Thọ') return 1;
+      if (a === 'Sơn La') return -1;
+      if (b === 'Sơn La') return 1;
+      return a.localeCompare(b);
+  });
 
   let finalRoutes = [];
 
-  async function buildTrips(stops, depot, prefix, forceSingle = false) {
+  async function buildTrips(stops, depot, prefix, province, forceSingle = false) {
       if (stops.length === 0) return;
       let trips = [];
       
@@ -245,16 +289,31 @@ async function run(filePath, storeLocations, numInternal) {
             totalWorkHours: Math.round((cur - start) / 60 * 100) / 100,
             departureTime: CONFIG.START_TIME,
             routeGeometry: osrm ? osrm.geometry : null,
-            _depot: depot
+            _depot: depot,
+            province: province
           });
       }
   }
 
-  await buildTrips(vietTriStops, GXT_DEPOT, 'GXT Việt Trì');
+  for (const prov of provinces) {
+      const stops = stopsByProvince[prov];
+      if (stops.length === 0) continue;
+      
+      let depot = GXT_DEPOT;
+      for (const [key, value] of Object.entries(storeLocations)) {
+          if (value.province === prov && (key.toLowerCase().includes('kho') || key.toLowerCase().includes('depot') || key.toLowerCase().includes('hub'))) {
+              depot = { lat: value.lat, lng: value.lng, name: key };
+              break;
+          }
+      }
+      
+      const prefix = `GXT ${prov}`;
+      await buildTrips(stops, depot, prefix, prov);
+  }
 
-  let totalW = vietTriStops.reduce((s, p) => s + p.weight, 0);
-  let totalC = vietTriStops.reduce((s, p) => s + p.cbm, 0);
-  let totalStopsCount = vietTriStops.length;
+  let totalW = allStops.reduce((s, p) => s + p.weight, 0);
+  let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
+  let totalStopsCount = allStops.length;
 
   const maxRet = parseTime(CONFIG.MAX_RETURN_TIME);
   let warnings = [];

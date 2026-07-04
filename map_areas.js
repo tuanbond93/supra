@@ -74,7 +74,8 @@ const results = storesData.map(s => {
         address.includes('tx. phú thọ') || name.includes('tx. phú thọ') || address.includes('thị xã phú thọ') || name.includes('thị xã phú thọ') || 
         address.includes('tx phu tho') || name.includes('tx phu tho') || address.includes('thi xa phu tho') || name.includes('thi xa phu tho') ||
         address.includes('lâm thao') || name.includes('lâm thao') || address.includes('lam thao') || name.includes('lam thao') ||
-        address.includes('tam nông') || name.includes('tam nông') || address.includes('tam nong') || name.includes('tam nong')) status = 'Đã mở';
+        address.includes('tam nông') || name.includes('tam nông') || address.includes('tam nong') || name.includes('tam nong') ||
+        address.includes('phù ninh') || name.includes('phù ninh') || address.includes('phu ninh') || name.includes('phu ninh')) status = 'Đã mở';
     else status = 'Chưa mở';
   }
   

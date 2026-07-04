@@ -9,6 +9,7 @@
 
 const XLSX = require('xlsx');
 const fs = require('fs');
+const path = require('path');
 
 // ============================================================
 // CONFIGURATION
@@ -33,20 +34,40 @@ const CONFIG = {
 let storeLocationCache = null;
 function loadStoreLocations(mainFilePath) {
   if (storeLocationCache) return storeLocationCache;
-  const wb = XLSX.readFile(mainFilePath);
-  const ws = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(ws);
+  const dir = path.dirname(mainFilePath || __dirname);
+  const files = fs.readdirSync(dir).filter(f => f.startsWith('Winmart ') && f.endsWith('.xlsx') && !f.includes('Danh sách Winmart'));
+  
   const index = {};
-  for (const r of rows) {
-    const storeKey = r['Store']; // e.g. "2BVB - WM+ PTO Khu 9, Tam Nông"
-    if (r['Lat'] && r['Long']) {
-      const sid = String(r['StoreID'] || storeKey.split(' - ')[0]).trim();
-      index[storeKey] = { storeId: sid, lat: r['Lat'], lng: r['Long'], address: r['Address'] || '' };
-      // Also index by storeId
-      index[sid] = { storeId: sid, lat: r['Lat'], lng: r['Long'], address: r['Address'] || '' };
-      // And by partial name (the part after " - ")
-      const parts = storeKey.split(' - ');
-      if (parts.length > 1) index[parts.slice(1).join(' - ')] = { storeId: sid, lat: r['Lat'], lng: r['Long'], address: r['Address'] || '' };
+  for (const file of files) {
+    const fullPath = path.join(dir, file);
+    const m = file.match(/Winmart\s+(.+)\.xlsx/i);
+    const province = m ? m[1].trim() : 'Phú Thọ';
+    
+    try {
+      const wb = XLSX.readFile(fullPath);
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws);
+      for (const r of rows) {
+        const storeKey = r['Store'];
+        if (r['Lat'] && r['Long']) {
+          const sid = String(r['StoreID'] || storeKey.split(' - ')[0]).trim();
+          const info = {
+            storeId: sid,
+            lat: r['Lat'],
+            lng: r['Long'],
+            address: r['Address'] || '',
+            province: province
+          };
+          index[storeKey] = info;
+          index[sid] = info;
+          const parts = storeKey.split(' - ');
+          if (parts.length > 1) {
+            index[parts.slice(1).join(' - ')] = info;
+          }
+        }
+      }
+    } catch (e) {
+      console.error(`Cannot load store locations from ${file}:`, e.message);
     }
   }
   storeLocationCache = index;
@@ -582,7 +603,8 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
         if (!region.includes('việt trì') && !region.includes('viet tri') && 
             !region.includes('tx. phú thọ') && !region.includes('thị xã phú thọ') && !region.includes('tx phu tho') && !region.includes('thi xa phu tho') &&
             !region.includes('lâm thao') && !region.includes('lam thao') &&
-            !region.includes('tam nông') && !region.includes('tam nong')) continue;
+            !region.includes('tam nông') && !region.includes('tam nong') &&
+            !region.includes('phù ninh') && !region.includes('phu ninh')) continue;
     }
 
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
