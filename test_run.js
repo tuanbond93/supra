@@ -9,6 +9,7 @@ async function test() {
     const result = await api.run(file, storeLocations, 2);
     console.log("Total stops:", result.totalStops);
     console.log("Total weight:", result.totalWeight);
+    console.log("Province report:", result.provinceReport);
     console.log("Routes:");
     result.routes.forEach(r => {
         console.log(`- ${r.vehicleId}: ${r.numStops} stops, weight: ${r.totalWeight}kg`);

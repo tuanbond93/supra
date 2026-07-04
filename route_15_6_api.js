@@ -162,20 +162,36 @@ async function run(filePath, storeLocations, numInternal) {
 
   const allStops = Object.values(byStore).filter(s => s.weight > 0 || s.cbm > 0);
   
+  const ALLOWED_DISTRICTS = {
+    'Phú Thọ': ['việt trì', 'viet tri', 'tx. phú thọ', 'thị xã phú thọ', 'tx phu tho', 'thi xa phu tho', 'lâm thao', 'lam thao', 'tam nông', 'tam nong', 'phù ninh', 'phu ninh'],
+    'Sơn La': ['tp. sơn la', 'tp. son la', 'thành phố sơn la', 'h. mai sơn', 'h. mai son', 'huyện mai sơn', 'mai sơn', 'mai son'],
+    'Lai Châu': ['tp. lai châu', 'tp. lai chau', 'thành phố lai châu'],
+    'Điện Biên': ['h. điện biên', 'h. dien bien', 'huyện điện biên', 'tp. điện biên phủ', 'tp. dien bien phu', 'thành phố điện biên phủ']
+  };
+
+  const provinceOriginalTotals = {};
+  for (const s of allStops) {
+      const prov = s.province || 'Phú Thọ';
+      if (!provinceOriginalTotals[prov]) {
+          provinceOriginalTotals[prov] = {
+              storeCount: 0,
+              weight: 0
+          };
+      }
+      provinceOriginalTotals[prov].storeCount++;
+      provinceOriginalTotals[prov].weight += s.weight;
+  }
+  
   const stopsByProvince = {};
   for (const s of allStops) {
       const prov = s.province || 'Phú Thọ';
       
-      // Lọc các huyện được phép chạy đối với tỉnh Phú Thọ
-      if (prov === 'Phú Thọ') {
+      const allowed = ALLOWED_DISTRICTS[prov];
+      if (allowed) {
           const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
-          const isAllowedPhuTho = txt.includes('việt trì') || txt.includes('viet tri') || 
-                                  txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
-                                  txt.includes('lâm thao') || txt.includes('lam thao') ||
-                                  txt.includes('tam nông') || txt.includes('tam nong') ||
-                                  txt.includes('phù ninh') || txt.includes('phu ninh');
-          if (!isAllowedPhuTho) {
-              continue; // Bỏ qua cửa hàng thuộc huyện không chạy ở Phú Thọ
+          const isAllowed = allowed.some(kw => txt.includes(kw));
+          if (!isAllowed) {
+              continue; 
           }
       }
       
@@ -338,6 +354,27 @@ async function run(filePath, storeLocations, numInternal) {
     if (r.cbmFillPercent > 100) warnings.push(`Xe ${r.vehicleId}: VƯỢT TẢI CBM (${r.cbmFillPercent}%)`);
   });
 
+  const provinceReport = [];
+  for (const prov of Object.keys(provinceOriginalTotals)) {
+      const orig = provinceOriginalTotals[prov];
+      const stops = stopsByProvince[prov] || [];
+      const activeStores = stops.length;
+      const activeWeight = stops.reduce((sum, s) => sum + s.weight, 0);
+      
+      const storePercent = orig.storeCount > 0 ? Math.round((activeStores / orig.storeCount) * 100) : 0;
+      const weightPercent = orig.weight > 0 ? Math.round((activeWeight / orig.weight) * 100) : 0;
+      
+      provinceReport.push({
+          province: prov,
+          activeStores,
+          totalStores: orig.storeCount,
+          storePercent,
+          activeWeight,
+          totalWeight: orig.weight,
+          weightPercent
+      });
+  }
+
   return {
     config: CONFIG, depot: GXT_DEPOT,
     totalStops: totalStopsCount, totalVehiclesUsed: finalRoutes.length,
@@ -345,6 +382,7 @@ async function run(filePath, storeLocations, numInternal) {
     totalDistance: Math.round(finalRoutes.reduce((s, r) => s + r.totalDistance, 0) * 100) / 100,
     totalWeight: Math.round(totalW * 100) / 100, totalCbm: Math.round(totalC * 100) / 100,
     routes: finalRoutes, warnings,
+    provinceReport: provinceReport
   };
 }
 

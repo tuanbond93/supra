@@ -316,6 +316,20 @@ function renderPlanDashboard(data) {
     bar.classList.remove('hidden');
   } else { bar.classList.add('hidden'); }
 
+  const reportBar = document.getElementById('plan-province-report');
+  if (reportBar) {
+    if (data.provinceReport && data.provinceReport.length) {
+      let reportHtml = '📈 <strong>Tỷ lệ hoàn thành theo tỉnh:</strong><br>';
+      data.provinceReport.forEach(rep => {
+        reportHtml += `• ${rep.province}: Đã chạy ${rep.storePercent}% số CH (${rep.activeStores}/${rep.totalStores} CH), ${rep.weightPercent}% khối lượng (${Math.round(rep.activeWeight)}/${Math.round(rep.totalWeight)} kg)<br>`;
+      });
+      reportBar.innerHTML = reportHtml;
+      reportBar.classList.remove('hidden');
+    } else {
+      reportBar.classList.add('hidden');
+    }
+  }
+
   renderPlanMap(data);
   
   const c = document.getElementById('plan-vehicle-tabs'); c.innerHTML = '';

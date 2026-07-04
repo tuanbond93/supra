@@ -440,7 +440,17 @@ app.post('/api/telegram-webhook', async (req, res) => {
       // 5. Send success message (Summary)
       let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
       if (wasOverwritten) summaryText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-      summaryText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n📍 CHI TIẾT LỘ TRÌNH:`;
+      summaryText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n`;
+      
+      if (result.provinceReport && result.provinceReport.length > 0) {
+          summaryText += `📈 Tỷ lệ hoàn thành theo tỉnh:\n`;
+          result.provinceReport.forEach(rep => {
+              summaryText += `- ${rep.province}: Đã chạy ${rep.storePercent}% số CH (${rep.activeStores}/${rep.totalStores} CH), ${rep.weightPercent}% khối lượng (${Math.round(rep.activeWeight)}/${Math.round(rep.totalWeight)} kg)\n`;
+          });
+          summaryText += `\n`;
+      }
+      
+      summaryText += `📍 CHI TIẾT LỘ TRÌNH:`;
       await sendMsg(summaryText);
       
       // Send detailed routes in chunks to avoid 4096 char limit
