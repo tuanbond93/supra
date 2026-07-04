@@ -165,6 +165,20 @@ async function run(filePath, storeLocations, numInternal) {
   const stopsByProvince = {};
   for (const s of allStops) {
       const prov = s.province || 'Phú Thọ';
+      
+      // Lọc các huyện được phép chạy đối với tỉnh Phú Thọ
+      if (prov === 'Phú Thọ') {
+          const txt = (s.name + ' ' + s.address + ' ' + (s.region || '')).normalize('NFC').toLowerCase();
+          const isAllowedPhuTho = txt.includes('việt trì') || txt.includes('viet tri') || 
+                                  txt.includes('tx. phú thọ') || txt.includes('thị xã phú thọ') || txt.includes('tx phu tho') || txt.includes('thi xa phu tho') ||
+                                  txt.includes('lâm thao') || txt.includes('lam thao') ||
+                                  txt.includes('tam nông') || txt.includes('tam nong') ||
+                                  txt.includes('phù ninh') || txt.includes('phu ninh');
+          if (!isAllowedPhuTho) {
+              continue; // Bỏ qua cửa hàng thuộc huyện không chạy ở Phú Thọ
+          }
+      }
+      
       if (!stopsByProvince[prov]) {
           stopsByProvince[prov] = [];
       }
@@ -311,9 +325,10 @@ async function run(filePath, storeLocations, numInternal) {
       await buildTrips(stops, depot, prefix, prov);
   }
 
-  let totalW = allStops.reduce((s, p) => s + p.weight, 0);
-  let totalC = allStops.reduce((s, p) => s + p.cbm, 0);
-  let totalStopsCount = allStops.length;
+  const filteredStops = Object.values(stopsByProvince).flat();
+  let totalW = filteredStops.reduce((s, p) => s + p.weight, 0);
+  let totalC = filteredStops.reduce((s, p) => s + p.cbm, 0);
+  let totalStopsCount = filteredStops.length;
 
   const maxRet = parseTime(CONFIG.MAX_RETURN_TIME);
   let warnings = [];
