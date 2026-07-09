@@ -221,6 +221,8 @@ function generateExcelBuffer(data) {
     const low = prov.toLowerCase();
     if (low.includes('phú thọ') || low.includes('phu tho')) return 'PTO';
     if (low.includes('sơn la') || low.includes('son la')) return 'SLA';
+    if (low.includes('điện biên') || low.includes('dien bien')) return 'DBN';
+    if (low.includes('lai châu') || low.includes('lai chau')) return 'LCA';
     
     const norm = prov.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const parts = norm.split(/\s+/).filter(Boolean);
