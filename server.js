@@ -297,15 +297,14 @@ function generateExcelBuffer(data) {
       const prov = r.province || 'Phú Thọ';
       const abbr = getProvinceAbbreviation(prov);
       r.schedule.forEach(s => {
-          if (s.soList && s.soList.length > 0) {
-              s.soList.forEach(so => {
-                  doGanRows.push({
-                      'Tỉnh': prov,
-                      'Tên cửa hàng': s.storeName,
-                      [`SO_GXT_${abbr}`]: `${so}_GXT_${abbr}`
-                  });
+          const listToUse = (s.doList && s.doList.length > 0) ? s.doList : (s.soList || []);
+          listToUse.forEach(item => {
+              doGanRows.push({
+                  'Tỉnh': prov,
+                  'Tên cửa hàng': s.storeName,
+                  [`SO_GXT_${abbr}`]: `${item}_GXT_${abbr}`
               });
-          }
+          });
       });
   });
   
@@ -454,6 +453,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
       await sendMsg(summaryText);
       
       // Send detailed routes in chunks to avoid 4096 char limit
+      let currentChunkText = '';
       for (let i = 0; i < result.routes.length; i++) {
          const r = result.routes[i];
          const depot = r._depot || result.depot;
@@ -469,22 +469,44 @@ app.post('/api/telegram-webhook', async (req, res) => {
          });
          
          mapUrl += `/${depot.lat},${depot.lng}`;
-         routeText += `\n🗺 <a href="${mapUrl}">Chi tiết lộ trình</a>\n`;
+         routeText += `\n🗺 <a href="${mapUrl}">Chi tiết lộ trình</a>\n\n`;
          
-         await sendMsg(routeText, true);
+         if ((currentChunkText + routeText).length > 3500) {
+             await sendMsg(currentChunkText, true);
+             currentChunkText = routeText;
+         } else {
+             currentChunkText += routeText;
+         }
+      }
+      if (currentChunkText) {
+          await sendMsg(currentChunkText, true);
       }
       
       // 6. Send Excel file
       const excelBuffer = generateExcelBuffer(result);
-      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const formData = new FormData();
-      formData.append('chat_id', chatId);
-      formData.append('document', blob, `ke_hoach_lo_trinh_${dateStr.replace(/-/g,'')}.xlsx`);
       
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, {
+      const boundary = '----TelegramBotBoundary' + Math.random().toString(36).substring(2);
+      const chunks = [];
+      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`));
+      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="ke_hoach_lo_trinh_${dateStr.replace(/-/g,'')}.xlsx"\r\nContent-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n`));
+      chunks.push(excelBuffer);
+      chunks.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+      const multipartBody = Buffer.concat(chunks);
+      
+      const sendDocRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, {
         method: 'POST',
-        body: formData
-      }).catch(e => console.error('Error sending document', e));
+        headers: {
+          'Content-Type': `multipart/form-data; boundary=${boundary}`,
+          'Content-Length': String(multipartBody.length)
+        },
+        body: multipartBody
+      });
+      
+      if (!sendDocRes.ok) {
+        const errText = await sendDocRes.text();
+        console.error('Telegram sendDocument failed:', errText);
+        throw new Error(`Telegram API sendDocument failed: ${errText}`);
+      }
 
       fs.unlinkSync(tempFile);
     } catch(err) {

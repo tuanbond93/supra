@@ -30,14 +30,20 @@ function formatTime(min) {
 async function fetchOSRMTable(points) {
   const coords = points.map(p => `${p.lng},${p.lat}`).join(';');
   const url = `https://router.project-osrm.org/table/v1/driving/${coords}?annotations=distance,duration`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (data.code !== 'Ok') throw new Error(`OSRM Table API: ${data.code}`);
-  return {
-    distMatrix: data.distances.map(row => row.map(d => d / 1000)),
-    durationMatrix: data.durations.map(row => row.map(d => d / 60)),
-    allPoints: points,
-  };
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 1500);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    const data = await res.json();
+    if (data.code !== 'Ok') throw new Error(`OSRM Table API: ${data.code}`);
+    return {
+      distMatrix: data.distances.map(row => row.map(d => d / 1000)),
+      durationMatrix: data.durations.map(row => row.map(d => d / 60)),
+      allPoints: points,
+    };
+  } finally {
+    clearTimeout(id);
+  }
 }
 
 async function run(filePath, storeLocations, numInternal) {
@@ -83,6 +89,11 @@ async function run(filePath, storeLocations, numInternal) {
       const norm = k.normalize('NFC').toLowerCase();
       return norm.includes('số so') || norm === 'so';
   }) || firstRowKeys[2] || 'Số SO';
+  // Try to find DO column (usually contains 'DO')
+  const doColumn = firstRowKeys.find(k => {
+      const norm = k.normalize('NFC').toLowerCase();
+      return norm.includes('số do') || norm === 'do';
+  });
   const regionColumn = firstRowKeys.find(k => {
       const norm = k.normalize('NFC').toLowerCase();
       return norm.includes('quận') || norm.includes('khu vực');
@@ -146,6 +157,7 @@ async function run(filePath, storeLocations, numInternal) {
           weight: 0, 
           cbm: 0, 
           soList: [],
+          doList: [],
           province: province
       };
     }
@@ -156,6 +168,12 @@ async function run(filePath, storeLocations, numInternal) {
         const soNum = String(r[soColumn]).trim();
         if (soNum && !byStore[key].soList.includes(soNum)) {
             byStore[key].soList.push(soNum);
+        }
+    }
+    if (doColumn && r[doColumn]) {
+        const doNum = String(r[doColumn]).trim();
+        if (doNum && !byStore[key].doList.includes(doNum)) {
+            byStore[key].doList.push(doNum);
         }
     }
   }
@@ -251,8 +269,7 @@ async function run(filePath, storeLocations, numInternal) {
           if (currentTrip.length > 0) trips.push(currentTrip);
       }
 
-      for (let i = 0; i < trips.length; i++) {
-          const tripStops = trips[i];
+      const tripPromises = trips.map(async (tripStops, i) => {
           const allPoints = [depot, ...tripStops];
           let distMatrix, durationMatrix;
           
@@ -288,7 +305,7 @@ async function run(filePath, storeLocations, numInternal) {
             const idx = opt.route[sIdx]; const pt = allPoints[idx];
             const travel = durationMatrix[prev][idx];
             cur += travel;
-            schedData.push({ order: sIdx + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(distMatrix[prev][idx]*100)/100, travelMinutes: Math.round(travel*10)/10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm, soList: pt.soList || [] });
+            schedData.push({ order: sIdx + 1, storeId: pt.storeId, storeName: pt.name, address: pt.address, lat: pt.lat, lng: pt.lng, distance: Math.round(distMatrix[prev][idx]*100)/100, travelMinutes: Math.round(travel*10)/10, arrivalTime: formatTime(cur), weight: pt.weight, cbm: pt.cbm, soList: pt.soList || [], doList: pt.doList || [] });
             cur += CONFIG.SERVICE_TIME_MINUTES;
             prev = idx;
           }
@@ -307,7 +324,7 @@ async function run(filePath, storeLocations, numInternal) {
               vid = `${prefix} ${i+1}`;
           }
           
-          finalRoutes.push({
+          return {
             vehicleId: vid, 
             zoneId: 'Tự động',
             numStops: tripStops.length,
@@ -321,13 +338,15 @@ async function run(filePath, storeLocations, numInternal) {
             routeGeometry: osrm ? osrm.geometry : null,
             _depot: depot,
             province: province
-          });
-      }
+          };
+      });
+      const tripResults = await Promise.all(tripPromises);
+      finalRoutes.push(...tripResults);
   }
 
-  for (const prov of provinces) {
+  const buildPromises = provinces.map(async (prov) => {
       const stops = stopsByProvince[prov];
-      if (stops.length === 0) continue;
+      if (stops.length === 0) return;
       
       let depot = GXT_DEPOT;
       for (const [key, value] of Object.entries(storeLocations)) {
@@ -339,7 +358,8 @@ async function run(filePath, storeLocations, numInternal) {
       
       const prefix = `GXT ${prov}`;
       await buildTrips(stops, depot, prefix, prov);
-  }
+  });
+  await Promise.all(buildPromises);
 
   const filteredStops = Object.values(stopsByProvince).flat();
   let totalW = filteredStops.reduce((s, p) => s + p.weight, 0);

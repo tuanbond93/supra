@@ -46,13 +46,17 @@ async function getOSRMRoute(points) {
   if(points.length < 2) return null;
   const coords = points.map(p => `${p.lng},${p.lat}`).join(';');
   const url = `${CONFIG.OSRM_BASE}/route/v1/driving/${coords}?overview=full&geometries=geojson`;
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 1500);
   try {
-    const res = await fetch(url);
+    const res = await fetch(url, { signal: controller.signal });
     const data = await res.json();
     if (data.code === 'Ok' && data.routes[0]) {
       return { geometry: data.routes[0].geometry, distance: data.routes[0].distance / 1000, duration: data.routes[0].duration / 60 };
     }
-  } catch (e) {}
+  } catch (e) {} finally {
+    clearTimeout(id);
+  }
   return null;
 }
 
