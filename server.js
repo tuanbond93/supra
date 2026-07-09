@@ -299,7 +299,7 @@ function generateExcelBuffer(data) {
       const prov = r.province || 'Phú Thọ';
       const abbr = getProvinceAbbreviation(prov);
       r.schedule.forEach(s => {
-          const listToUse = (s.doList && s.doList.length > 0) ? s.doList : (s.soList || []);
+          const listToUse = s.soList || [];
           listToUse.forEach(item => {
               doGanRows.push({
                   'Tỉnh': prov,
