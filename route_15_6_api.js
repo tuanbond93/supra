@@ -140,7 +140,7 @@ async function run(filePath, storeLocations, numInternal) {
           const txt = (storeName + ' ' + loc.address + ' ' + region).normalize('NFC').toLowerCase();
           if (txt.includes('sơn la') || txt.includes('son la')) {
               province = 'Sơn La';
-          } else if (txt.includes('phú thọ') || txt.includes('phu tho') || txt.includes('phù ninh') || txt.includes('phu ninh')) {
+          } else if (txt.includes('phú thọ') || txt.includes('phu tho') || txt.includes('phù ninh') || txt.includes('phu ninh') || txt.includes('cẩm khê') || txt.includes('cam khe') || txt.includes('thanh ba')) {
               province = 'Phú Thọ';
           } else {
               province = 'Phú Thọ'; // default
@@ -181,7 +181,6 @@ async function run(filePath, storeLocations, numInternal) {
   const allStops = Object.values(byStore).filter(s => s.weight > 0 || s.cbm > 0);
   
   const ALLOWED_DISTRICTS = {
-    'Phú Thọ': ['việt trì', 'viet tri', 'tx. phú thọ', 'thị xã phú thọ', 'tx phu tho', 'thi xa phu tho', 'lâm thao', 'lam thao', 'tam nông', 'tam nong', 'phù ninh', 'phu ninh'],
     'Sơn La': ['tp. sơn la', 'tp. son la', 'thành phố sơn la', 'h. mai sơn', 'h. mai son', 'huyện mai sơn', 'mai sơn', 'mai son'],
     'Lai Châu': ['tp. lai châu', 'tp. lai chau', 'thành phố lai châu'],
     'Điện Biên': ['h. điện biên', 'h. dien bien', 'huyện điện biên', 'tp. điện biên phủ', 'tp. dien bien phu', 'thành phố điện biên phủ']

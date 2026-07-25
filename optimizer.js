@@ -598,14 +598,6 @@ async function optimizeVehiclePlan(filePath, storeLocations, numInternal = 2) {
   // 1. Parse Excel and aggregate by Store
   const byStore = {};
   for (const r of raw) {
-    if (regionColumn) {
-        const region = String(r[regionColumn] || r['Quận'] || r['Khu vực'] || '').normalize('NFC').trim().toLowerCase();
-        if (!region.includes('việt trì') && !region.includes('viet tri') && 
-            !region.includes('tx. phú thọ') && !region.includes('thị xã phú thọ') && !region.includes('tx phu tho') && !region.includes('thi xa phu tho') &&
-            !region.includes('lâm thao') && !region.includes('lam thao') &&
-            !region.includes('tam nông') && !region.includes('tam nong') &&
-            !region.includes('phù ninh') && !region.includes('phu ninh')) continue;
-    }
 
     const storeName = r['Tên siêu thị'] || r['Tên Cửa Hàng'] || r['Store Name'];
     const storeCode = String(r['Mã siêu thị '] || r['Mã siêu thị'] || '').trim();

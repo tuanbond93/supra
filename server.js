@@ -426,6 +426,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
       const numInternal = 2;
       let result;
       // Default to new API for all requests
+      delete require.cache[require.resolve('./route_15_6_api')];
       result = await require('./route_15_6_api').run(tempFile, storeLocations, numInternal);
       
       // 4. Update history
