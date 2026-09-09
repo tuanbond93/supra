@@ -382,7 +382,7 @@ app.get('/api/config', (req, res) => res.json(CONFIG));
 // TELEGRAM HELPERS & KEYBOARDS
 // ==========================================
 const cron = require('node-cron');
-const { fetchLatestPlanMail } = require('./mail_sync');
+const { fetchLatestPlanMail, markEmailAnswered } = require('./mail_sync');
 
 const MAIN_KEYBOARD = {
   keyboard: [
@@ -397,6 +397,58 @@ const SYNC_INLINE_KEYBOARD = {
     [{ text: '🔄 Đồng bộ lại từ Mail', callback_data: 'sync_mail' }]
   ]
 };
+
+async function getTelegramSyncedState() {
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  if (!TELEGRAM_TOKEN) return '';
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getMyShortDescription`);
+    const json = await res.json();
+    if (json.ok && json.result && json.result.short_description) {
+      return json.result.short_description;
+    }
+  } catch(e) {
+    console.warn('Error reading Telegram short_description:', e.message);
+  }
+  return '';
+}
+
+async function setTelegramSyncedState(val) {
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  if (!TELEGRAM_TOKEN || !val) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/setMyShortDescription`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ short_description: String(val).slice(0, 120) })
+    });
+  } catch(e) {
+    console.warn('Error setting Telegram short_description:', e.message);
+  }
+}
+
+async function isDuplicatePlanPersistent(fileName, messageId, isImapAnswered = false) {
+  // 1. Kiểm tra cờ IMAP vĩnh viễn trên Gmail
+  if (isImapAnswered) return true;
+
+  // 2. Kiểm tra bộ nhớ đồng bộ vĩnh viễn trên Telegram Bot
+  const tgState = await getTelegramSyncedState();
+  if (tgState && fileName && tgState.includes(fileName)) {
+    return true;
+  }
+
+  // 3. Kiểm tra local historyManager
+  if (historyManager.checkIsDuplicatePlan(fileName) || (messageId && historyManager.checkIsDuplicatePlan(messageId))) {
+    return true;
+  }
+
+  // 4. Nhận diện file 20260909 GHN đã chạy thành công trong group trước đó
+  if (fileName && fileName.includes('20260909 GHN')) {
+    return true;
+  }
+
+  return false;
+}
 
 async function sendTelegramMessage(chatId, text, useHtml = false, replyMarkup = null) {
   const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
@@ -496,10 +548,11 @@ async function handleMailSyncTrigger(chatId, force = false) {
   try {
     const mailResult = await fetchLatestPlanMail();
 
-    // Kiểm tra trùng lặp
-    const isDup = !force && (
-      historyManager.checkIsDuplicatePlan(mailResult.fileName) ||
-      (mailResult.messageId && historyManager.checkIsDuplicatePlan(mailResult.messageId))
+    // Kiểm tra trùng lặp bền vững (IMAP flag + Telegram Bot State + Filename)
+    const isDup = !force && await isDuplicatePlanPersistent(
+      mailResult.fileName,
+      mailResult.messageId,
+      mailResult.isImapAnswered
     );
 
     if (isDup) {
@@ -530,10 +583,14 @@ async function handleMailSyncTrigger(chatId, force = false) {
       chatId
     );
 
-    // Đánh dấu đã đồng bộ để chống trùng lặp
+    // Đánh dấu đã đồng bộ (cả Local, Telegram State và IMAP Flag)
     historyManager.markPlanSynced(mailResult.fileName, { date: planRes.dateStr, subject: mailResult.emailSubject });
     if (mailResult.messageId) {
       historyManager.markPlanSynced(mailResult.messageId, { date: planRes.dateStr, fileName: mailResult.fileName });
+    }
+    await setTelegramSyncedState(`SYNCED:${mailResult.fileName}`);
+    if (mailResult.uid) {
+      await markEmailAnswered(mailResult.uid);
     }
 
     try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
@@ -561,8 +618,11 @@ async function triggerDailySync() {
     console.log(`Found mail: ${mailResult.emailSubject} (${mailResult.fileName})`);
 
     // Kiểm tra trùng lặp lúc 12h trưa
-    const isDup = historyManager.checkIsDuplicatePlan(mailResult.fileName) ||
-                  (mailResult.messageId && historyManager.checkIsDuplicatePlan(mailResult.messageId));
+    const isDup = await isDuplicatePlanPersistent(
+      mailResult.fileName,
+      mailResult.messageId,
+      mailResult.isImapAnswered
+    );
 
     if (isDup) {
       try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
@@ -593,6 +653,10 @@ async function triggerDailySync() {
     historyManager.markPlanSynced(mailResult.fileName, { date: planRes.dateStr, subject: mailResult.emailSubject });
     if (mailResult.messageId) {
       historyManager.markPlanSynced(mailResult.messageId, { date: planRes.dateStr, fileName: mailResult.fileName });
+    }
+    await setTelegramSyncedState(`SYNCED:${mailResult.fileName}`);
+    if (mailResult.uid) {
+      await markEmailAnswered(mailResult.uid);
     }
 
     for (let i = 1; i < chats.length; i++) {
@@ -703,7 +767,8 @@ app.post('/api/telegram-webhook', async (req, res) => {
       }
 
       // Kiểm tra trùng lặp file gửi trực tiếp
-      if (historyManager.checkIsDuplicatePlan(doc.file_name)) {
+      const isDup = await isDuplicatePlanPersistent(doc.file_name);
+      if (isDup) {
         await sendTelegramMessage(
           chatId,
           `⚠️ <b>Thông báo trùng file:</b>\n` +
@@ -736,6 +801,7 @@ app.post('/api/telegram-webhook', async (req, res) => {
       try {
         const planRes = await executePlanProcessing(tempFile, doc.file_name, `Telegram: ${emailLabel}`, chatId);
         historyManager.markPlanSynced(doc.file_name, { date: planRes.dateStr });
+        await setTelegramSyncedState(`SYNCED:${doc.file_name}`);
         try { fs.unlinkSync(tempFile); } catch (e) {}
       } catch (err) {
         console.error('Processing error:', err);

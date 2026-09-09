@@ -87,7 +87,7 @@ async function fetchLatestPlanMail(options = {}) {
       const range = `${startSeq}:${totalMessages}`;
 
       const messages = [];
-      for await (const message of client.fetch(range, { envelope: true, uid: true })) {
+      for await (const message of client.fetch(range, { envelope: true, uid: true, flags: true })) {
         messages.push(message);
       }
       // Sort descending (newest first)
@@ -98,6 +98,7 @@ async function fetchLatestPlanMail(options = {}) {
 
       let matchedUid = null;
       let matchedEnvelope = null;
+      let matchedFlags = null;
 
       for (const msg of messages) {
         const env = msg.envelope;
@@ -119,6 +120,7 @@ async function fetchLatestPlanMail(options = {}) {
         if (subjectMatches || (senderMatches && subjectNorm.includes('nvt'))) {
           matchedUid = msg.uid;
           matchedEnvelope = env;
+          matchedFlags = msg.flags;
           break;
         }
       }
@@ -128,6 +130,12 @@ async function fetchLatestPlanMail(options = {}) {
           `Không tìm thấy email nào khớp với tiêu đề "${CONFIG.subjectKeyword}" hoặc người gửi từ Supra/Masan trong ${fetchCount} thư gần nhất.`
         );
       }
+
+      const isImapAnswered = matchedFlags && (
+        matchedFlags.has('\\Answered') ||
+        matchedFlags.has('$suprasynced') ||
+        matchedFlags.has('$SupraSynced')
+      );
 
       // Download message source
       let messageSource = null;
@@ -183,6 +191,8 @@ async function fetchLatestPlanMail(options = {}) {
         emailSender: parsed.from ? parsed.from.text : '',
         emailDate: parsed.date,
         messageId: parsed.messageId || '',
+        uid: matchedUid,
+        isImapAnswered: !!isImapAnswered,
       };
     } finally {
       lock.release();
@@ -196,7 +206,43 @@ async function fetchLatestPlanMail(options = {}) {
   }
 }
 
+/**
+ * Marks an email as processed/answered in IMAP permanently
+ */
+async function markEmailAnswered(uid) {
+  if (!uid) return;
+  const user = CONFIG.user;
+  const pass = CONFIG.pass;
+  if (!user || !pass) return;
+
+  const client = new ImapFlow({
+    host: CONFIG.host,
+    port: CONFIG.port,
+    secure: CONFIG.secure,
+    auth: { user, pass },
+    logger: false,
+    emitLogs: false,
+  });
+
+  try {
+    await client.connect();
+    const lock = await client.getMailboxLock('INBOX');
+    try {
+      await client.messageFlagsAdd(String(uid), ['\\Answered', '$SupraSynced'], { uid: true });
+    } finally {
+      lock.release();
+    }
+  } catch (e) {
+    console.warn('Error marking email answered in IMAP:', e.message);
+  } finally {
+    try {
+      await client.logout();
+    } catch (e) {}
+  }
+}
+
 module.exports = {
   fetchLatestPlanMail,
+  markEmailAnswered,
   CONFIG,
 };
