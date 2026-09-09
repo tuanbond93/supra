@@ -264,77 +264,91 @@ function generateExcelBuffer(data) {
     routesByProvince[prov].push(r);
   });
   
-  Object.keys(routesByProvince).forEach(prov => {
+  // Sắp xếp các tỉnh theo thứ tự chuẩn
+  const knownProvincesOrder = ['Sơn La', 'Điện Biên', 'Lai Châu', 'Phú Thọ'];
+  const sortedProvinces = Object.keys(routesByProvince).sort((a, b) => {
+    const idxA = knownProvincesOrder.indexOf(a);
+    const idxB = knownProvincesOrder.indexOf(b);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.localeCompare(b);
+  });
+
+  // 1. Tạo từng sheet SO cho từng tỉnh để nhân viên tiện gán đơn
+  sortedProvinces.forEach(prov => {
     const provinceRoutes = routesByProvince[prov];
+    const abbr = getProvinceAbbreviation(prov);
     const rows = [];
-    
+    let stt = 1;
+
     provinceRoutes.forEach(r => {
-      const depot = r._depot || data.depot;
-      rows.push({
-        'Biển số / Loại xe': r.vehicleId,
-        'Thứ tự': 'Bắt đầu',
-        'Mã CH': '',
-        'Tên Cửa Hàng': depot.name,
-        'Địa chỉ': 'Kho xuất phát',
-        'Khoảng cách (km)': 0,
-        'Thời gian đến': r.departureTime,
-        'Trọng lượng (kg)': '',
-        'Thể tích (m3)': ''
-      });
-      
       r.schedule.forEach(s => {
-        rows.push({
-          'Biển số / Loại xe': r.vehicleId,
-          'Thứ tự': s.order,
-          'Mã CH': s.storeId,
-          'Tên Cửa Hàng': s.storeName,
-          'Địa chỉ': s.address,
-          'Khoảng cách (km)': s.distance,
-          'Thời gian đến': s.arrivalTime,
-          'Trọng lượng (kg)': s.weight,
-          'Thể tích (m3)': s.cbm
+        const listToUse = s.soList || [];
+        if (listToUse.length === 0) {
+          rows.push({
+            'STT': stt++,
+            'Chuyến xe': r.vehicleId,
+            'Thứ tự giao': s.order,
+            'Mã CH': s.storeId || '',
+            'Tên cửa hàng': s.storeName,
+            'Mã SO': '',
+            [`SO_GXT_${abbr}`]: '',
+            'Trọng lượng (kg)': s.weight || ''
+          });
+        } else {
+          listToUse.forEach(item => {
+            const cleanItem = String(item).replace(/_GXT_[A-Za-z0-9]+$/i, '').trim();
+            rows.push({
+              'STT': stt++,
+              'Chuyến xe': r.vehicleId,
+              'Thứ tự giao': s.order,
+              'Mã CH': s.storeId || '',
+              'Tên cửa hàng': s.storeName,
+              'Mã SO': cleanItem,
+              [`SO_GXT_${abbr}`]: `${cleanItem}_GXT_${abbr}`,
+              'Trọng lượng (kg)': s.weight || ''
+            });
+          });
+        }
+      });
+    });
+
+    if (rows.length > 0) {
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const sheetName = `SO - ${prov}`.slice(0, 31);
+      XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    }
+  });
+
+  // 2. Tab DO Gán (Tổng hợp toàn bộ các tỉnh)
+  const doGanRows = [];
+  let totalStt = 1;
+  data.routes.forEach(r => {
+    const prov = r.province || 'Phú Thọ';
+    const abbr = getProvinceAbbreviation(prov);
+    r.schedule.forEach(s => {
+      const listToUse = s.soList || [];
+      listToUse.forEach(item => {
+        const cleanItem = String(item).replace(/_GXT_[A-Za-z0-9]+$/i, '').trim();
+        doGanRows.push({
+          'STT': totalStt++,
+          'Tỉnh': prov,
+          'Chuyến xe': r.vehicleId,
+          'Thứ tự giao': s.order,
+          'Mã CH': s.storeId || '',
+          'Tên cửa hàng': s.storeName,
+          'Mã SO': cleanItem,
+          'Mã SO Gán': `${cleanItem}_GXT_${abbr}`,
+          [`SO_GXT_${abbr}`]: `${cleanItem}_GXT_${abbr}`
         });
       });
-      
-      rows.push({
-        'Biển số / Loại xe': r.vehicleId,
-        'Thứ tự': 'Kết thúc',
-        'Mã CH': '',
-        'Tên Cửa Hàng': depot.name,
-        'Địa chỉ': 'Về kho',
-        'Khoảng cách (km)': '',
-        'Thời gian đến': r.returnTime,
-        'Trọng lượng (kg)': '',
-        'Thể tích (m3)': ''
-      });
-      rows.push({}); // Empty row for separation
     });
-    
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const sheetName = `Lộ trình - ${prov}`.slice(0, 31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
   });
-  
-  const doGanRows = [];
-  data.routes.forEach(r => {
-      const prov = r.province || 'Phú Thọ';
-      const abbr = getProvinceAbbreviation(prov);
-      r.schedule.forEach(s => {
-          const listToUse = s.soList || [];
-          listToUse.forEach(item => {
-              const cleanItem = String(item).replace(/_GXT_[A-Za-z0-9]+$/i, '').trim();
-              doGanRows.push({
-                  'Tỉnh': prov,
-                  'Tên cửa hàng': s.storeName,
-                  [`SO_GXT_${abbr}`]: `${cleanItem}_GXT_${abbr}`
-              });
-          });
-      });
-  });
-  
+
   if (doGanRows.length > 0) {
-      const wsDoGan = XLSX.utils.json_to_sheet(doGanRows);
-      XLSX.utils.book_append_sheet(wb, wsDoGan, "DO Gán");
+    const wsDoGan = XLSX.utils.json_to_sheet(doGanRows);
+    XLSX.utils.book_append_sheet(wb, wsDoGan, "DO Gán");
   }
 
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
