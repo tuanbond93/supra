@@ -242,8 +242,8 @@ function generateExcelBuffer(data) {
     const low = prov.toLowerCase();
     if (low.includes('phú thọ') || low.includes('phu tho')) return 'PTO';
     if (low.includes('sơn la') || low.includes('son la')) return 'SLA';
-    if (low.includes('điện biên') || low.includes('dien bien')) return 'DBN';
-    if (low.includes('lai châu') || low.includes('lai chau')) return 'LCA';
+    if (low.includes('điện biên') || low.includes('dien bien')) return 'SLA';
+    if (low.includes('lai châu') || low.includes('lai chau')) return 'LCH';
     
     const norm = prov.normalize('NFD').replace(/[\u0300-\u036f]/g, "").toUpperCase();
     const parts = norm.split(/\s+/).filter(Boolean);
@@ -322,10 +322,11 @@ function generateExcelBuffer(data) {
       r.schedule.forEach(s => {
           const listToUse = s.soList || [];
           listToUse.forEach(item => {
+              const cleanItem = String(item).replace(/_GXT_[A-Za-z0-9]+$/i, '').trim();
               doGanRows.push({
                   'Tỉnh': prov,
                   'Tên cửa hàng': s.storeName,
-                  [`SO_GXT_${abbr}`]: `${item}_GXT_${abbr}`
+                  [`SO_GXT_${abbr}`]: `${cleanItem}_GXT_${abbr}`
               });
           });
       });
@@ -439,11 +440,6 @@ async function isDuplicatePlanPersistent(fileName, messageId, isImapAnswered = f
 
   // 3. Kiểm tra local historyManager
   if (historyManager.checkIsDuplicatePlan(fileName) || (messageId && historyManager.checkIsDuplicatePlan(messageId))) {
-    return true;
-  }
-
-  // 4. Nhận diện file 20260909 GHN đã chạy thành công trong group trước đó
-  if (fileName && fileName.includes('20260909 GHN')) {
     return true;
   }
 
