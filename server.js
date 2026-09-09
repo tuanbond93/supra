@@ -1,7 +1,28 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+
+// Auto-load .env if present
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split(/\r?\n/).forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const eqIdx = trimmed.indexOf('=');
+      if (eqIdx !== -1) {
+        const key = trimmed.slice(0, eqIdx).trim();
+        const val = trimmed.slice(eqIdx + 1).trim().replace(/^["'](.*)["']$/, '$1');
+        if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    }
+  });
+}
+
 const { CONFIG, loadStoreLocations, loadDailyOrders, buildDayStops, optimizeDay, analyzeHistory, optimizeVehiclePlan } = require('./optimizer');
+
 
 const app = express();
 const PORT = 3000;
@@ -358,167 +379,375 @@ app.get('/api/upload-log', (req, res) => {
 app.get('/api/config', (req, res) => res.json(CONFIG));
 
 // ==========================================
+// TELEGRAM HELPERS & KEYBOARDS
+// ==========================================
+const cron = require('node-cron');
+const { fetchLatestPlanMail } = require('./mail_sync');
+
+const MAIN_KEYBOARD = {
+  keyboard: [
+    [{ text: '🔄 Đồng bộ kế hoạch từ Mail' }]
+  ],
+  resize_keyboard: true,
+  is_persistent: true
+};
+
+const SYNC_INLINE_KEYBOARD = {
+  inline_keyboard: [
+    [{ text: '🔄 Đồng bộ lại từ Mail', callback_data: 'sync_mail' }]
+  ]
+};
+
+async function sendTelegramMessage(chatId, text, useHtml = false, replyMarkup = null) {
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  if (!TELEGRAM_TOKEN || !chatId) return;
+  const payload = { chat_id: chatId, text };
+  if (useHtml) payload.parse_mode = 'HTML';
+  if (replyMarkup) payload.reply_markup = replyMarkup;
+  return await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(e => console.error('Telegram sendMessage error:', e));
+}
+
+async function sendTelegramDocument(chatId, buffer, filename, caption = '') {
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+  if (!TELEGRAM_TOKEN || !chatId) return;
+  const boundary = '----TelegramBotBoundary' + Math.random().toString(36).substring(2);
+  const chunks = [];
+  chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`));
+  if (caption) {
+    chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="caption"\r\n\r\n${caption}\r\n`));
+  }
+  chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="${filename}"\r\nContent-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n`));
+  chunks.push(buffer);
+  chunks.push(Buffer.from(`\r\n--${boundary}--\r\n`));
+  const multipartBody = Buffer.concat(chunks);
+
+  const sendDocRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': `multipart/form-data; boundary=${boundary}`,
+      'Content-Length': String(multipartBody.length)
+    },
+    body: multipartBody
+  });
+  if (!sendDocRes.ok) {
+    const errText = await sendDocRes.text();
+    console.error('Telegram sendDocument failed:', errText);
+    throw new Error(`Telegram API sendDocument failed: ${errText}`);
+  }
+}
+
+async function executePlanProcessing(targetFile, originalFileName, uploaderLabel, targetChatId = null) {
+  // 1. Extract date from filename
+  let dateStr = new Date().toISOString().split('T')[0];
+  const fileDateMatch = originalFileName.match(/(\d{8})/);
+  if (fileDateMatch) {
+    const s = fileDateMatch[1];
+    dateStr = `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
+  } else {
+    const match2 = originalFileName.match(/(\d{1,2})\.(\d{1,2})/);
+    if (match2) {
+      dateStr = `2026-${match2[2].padStart(2, '0')}-${match2[1].padStart(2, '0')}`;
+    }
+  }
+
+  const numInternal = 2;
+  delete require.cache[require.resolve('./route_15_6_api')];
+  const result = await require('./route_15_6_api').run(targetFile, storeLocations, numInternal);
+
+  // 2. Update history
+  const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
+  historyManager.recordUploadLog(uploaderLabel, originalFileName, 'system', dateStr);
+
+  global.latestPlanResult = result;
+  global.latestPlanDate = dateStr;
+  fs.writeFileSync(latestPlanFile, JSON.stringify({ result, date: dateStr }));
+
+  // 3. Format message (chỉ gửi tóm tắt và tỷ lệ tỉnh, KHÔNG gửi lộ trình chi tiết)
+  let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
+  if (wasOverwritten) summaryText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
+  summaryText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n`;
+
+  if (result.provinceReport && result.provinceReport.length > 0) {
+    summaryText += `📈 Tỷ lệ hoàn thành theo tỉnh:\n`;
+    result.provinceReport.forEach(rep => {
+      summaryText += `- ${rep.province}: Đã chạy ${rep.storePercent}% số CH (${rep.activeStores}/${rep.totalStores} CH), ${rep.weightPercent}% khối lượng (${Math.round(rep.activeWeight)}/${Math.round(rep.totalWeight)} kg)\n`;
+    });
+  }
+
+  // 4. Generate Excel with "DO Gán" sheet
+  const excelBuffer = generateExcelBuffer(result);
+  const outFilename = `ke_hoach_lo_trinh_${dateStr.replace(/-/g, '')}.xlsx`;
+
+  if (targetChatId) {
+    await sendTelegramMessage(targetChatId, summaryText, false, SYNC_INLINE_KEYBOARD);
+    await sendTelegramDocument(targetChatId, excelBuffer, outFilename, `📥 File kế hoạch gán đơn ngày ${dateStr}`);
+  }
+
+  return { result, dateStr, wasOverwritten, summaryText, excelBuffer, outFilename };
+}
+
+async function handleMailSyncTrigger(chatId, force = false) {
+  historyManager.saveTelegramChat(chatId);
+  await sendTelegramMessage(chatId, '⏳ Đang kết nối hòm thư và tìm kiếm email kế hoạch xe mới nhất từ DC Phú Thọ...');
+  try {
+    const mailResult = await fetchLatestPlanMail();
+
+    // Kiểm tra trùng lặp
+    const isDup = !force && (
+      historyManager.checkIsDuplicatePlan(mailResult.fileName) ||
+      (mailResult.messageId && historyManager.checkIsDuplicatePlan(mailResult.messageId))
+    );
+
+    if (isDup) {
+      try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
+      await sendTelegramMessage(
+        chatId,
+        `⚠️ <b>Thông báo trùng kế hoạch:</b>\n\n` +
+        `Email mới nhất (<i>"${mailResult.emailSubject}"</i>)\n` +
+        `📎 File: <code>${mailResult.fileName}</code>\n\n` +
+        `ℹ️ Kế hoạch này <b>đã được xử lý và gửi trước đó rồi</b>. Hệ thống không gửi lại để tránh trùng lặp đơn gán!\n\n` +
+        `<i>(Mẹo: Gõ lệnh <code>/force_sync</code> nếu bạn vẫn muốn ép chạy lại kế hoạch này)</i>`,
+        true,
+        SYNC_INLINE_KEYBOARD
+      );
+      return;
+    }
+
+    await sendTelegramMessage(
+      chatId,
+      `📧 Đã tìm thấy email mới: <b>${mailResult.emailSubject}</b>\n📎 File đính kèm: <code>${mailResult.fileName}</code>\nĐang tiến hành phân tích & tạo file gán đơn...`,
+      true
+    );
+
+    const planRes = await executePlanProcessing(
+      mailResult.filePath,
+      mailResult.fileName,
+      `Mail: ${mailResult.emailSender || 'DC Phú Thọ'}`,
+      chatId
+    );
+
+    // Đánh dấu đã đồng bộ để chống trùng lặp
+    historyManager.markPlanSynced(mailResult.fileName, { date: planRes.dateStr, subject: mailResult.emailSubject });
+    if (mailResult.messageId) {
+      historyManager.markPlanSynced(mailResult.messageId, { date: planRes.dateStr, fileName: mailResult.fileName });
+    }
+
+    try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
+  } catch (err) {
+    console.error('Mail sync error:', err);
+    await sendTelegramMessage(
+      chatId,
+      `❌ Không thể đồng bộ từ Mail:\n${err.message}\n\n💡 Bạn vẫn có thể gửi trực tiếp file Excel kế hoạch xe vào bot này bất cứ lúc nào!`,
+      false,
+      SYNC_INLINE_KEYBOARD
+    );
+  }
+}
+
+async function triggerDailySync() {
+  console.log('⏰ Triggering 12:00 PM Daily Mail Sync...');
+  const chats = historyManager.getTelegramChats();
+  if (chats.length === 0) {
+    console.log('No Telegram chat subscribers registered for 12:00 sync.');
+    return { success: false, error: 'Chưa có nhóm hoặc người dùng nào đăng ký nhận tin tự động.' };
+  }
+
+  try {
+    const mailResult = await fetchLatestPlanMail();
+    console.log(`Found mail: ${mailResult.emailSubject} (${mailResult.fileName})`);
+
+    // Kiểm tra trùng lặp lúc 12h trưa
+    const isDup = historyManager.checkIsDuplicatePlan(mailResult.fileName) ||
+                  (mailResult.messageId && historyManager.checkIsDuplicatePlan(mailResult.messageId));
+
+    if (isDup) {
+      try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
+      console.log(`[12h Cron] File ${mailResult.fileName} already processed. Skipping re-send.`);
+      for (const cid of chats) {
+        try {
+          await sendTelegramMessage(
+            cid,
+            `ℹ️ <b>[Tự động 12h trưa]</b>\n` +
+            `Kế hoạch xe trong email mới nhất (<code>${mailResult.fileName}</code>) <b>đã được đồng bộ trước đó rồi</b>.\n` +
+            `Bot không gửi lại file để tránh trùng lặp đơn gán!`,
+            true,
+            SYNC_INLINE_KEYBOARD
+          );
+        } catch (e) {}
+      }
+      return { success: true, duplicate: true, fileName: mailResult.fileName };
+    }
+
+    const primaryChat = chats[0];
+    const planRes = await executePlanProcessing(
+      mailResult.filePath,
+      mailResult.fileName,
+      `AutoSync 12h: ${mailResult.emailSender || 'DC Phú Thọ'}`,
+      primaryChat
+    );
+
+    historyManager.markPlanSynced(mailResult.fileName, { date: planRes.dateStr, subject: mailResult.emailSubject });
+    if (mailResult.messageId) {
+      historyManager.markPlanSynced(mailResult.messageId, { date: planRes.dateStr, fileName: mailResult.fileName });
+    }
+
+    for (let i = 1; i < chats.length; i++) {
+      const cid = chats[i];
+      try {
+        await sendTelegramMessage(cid, planRes.summaryText, false, SYNC_INLINE_KEYBOARD);
+        await sendTelegramDocument(cid, planRes.excelBuffer, planRes.outFilename, `📥 File kế hoạch gán đơn ngày ${planRes.dateStr}`);
+      } catch (e) {
+        console.error(`Error sending to chat ${cid}:`, e.message);
+      }
+    }
+
+    try { fs.unlinkSync(mailResult.filePath); } catch (e) {}
+    return { success: true, date: planRes.dateStr, totalStops: planRes.result.totalStops };
+  } catch (err) {
+    console.error('Daily 12h sync failed:', err);
+    for (const cid of chats) {
+      try {
+        await sendTelegramMessage(cid, `⚠️ Tự động đồng bộ lúc 12h trưa gặp lỗi: ${err.message}`, false, SYNC_INLINE_KEYBOARD);
+      } catch (e) {}
+    }
+    return { success: false, error: err.message };
+  }
+}
+
+// Endpoint for Vercel Cron or external triggers
+app.get('/api/cron-sync', async (req, res) => {
+  const result = await triggerDailySync();
+  res.json(result);
+});
+
+// Register local 12:00 PM schedule (Asia/Ho_Chi_Minh)
+try {
+  cron.schedule('0 12 * * *', () => {
+    console.log('⏰ [Cron] Running daily 12:00 PM sync task...');
+    triggerDailySync();
+  }, {
+    timezone: 'Asia/Ho_Chi_Minh'
+  });
+  console.log('⏰ Registered daily 12:00 PM cron job (Asia/Ho_Chi_Minh)');
+} catch (e) {
+  console.warn('Could not register node-cron schedule:', e.message);
+}
+
+// ==========================================
 // TELEGRAM WEBHOOK INTEGRATION
 // ==========================================
 app.post('/api/telegram-webhook', async (req, res) => {
   try {
-    const message = req.body.message;
-    if (!message || !message.document) return res.sendStatus(200);
-
     const TELEGRAM_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     if (!TELEGRAM_TOKEN) {
-      console.warn('Missing TELEGRAM_BOT_TOKEN');
       return res.sendStatus(200);
     }
 
-    const chatId = message.chat.id;
-    const doc = message.document;
-    
-    // Accept Excel files
-    if (!doc.file_name.endsWith('.xlsx') && !doc.file_name.endsWith('.xlsb')) {
-      return res.sendStatus(200);
-    }
-
-    // 1. Send initial response
-    const sendMsg = async (text, useHtml = false) => {
-      const payload = { chat_id: chatId, text };
-      if (useHtml) payload.parse_mode = 'HTML';
-      await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+    // 1. Handle Inline button callbacks
+    if (req.body.callback_query) {
+      const cb = req.body.callback_query;
+      const chatId = cb.message && cb.message.chat ? cb.message.chat.id : null;
+      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/answerCallbackQuery`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).catch(e => console.error(e));
-    };
+        body: JSON.stringify({ callback_query_id: cb.id })
+      }).catch(() => {});
 
-    await sendMsg(`Đang tải và phân tích file: ${doc.file_name}...`);
-
-    // 2. Download file
-    const fileRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getFile?file_id=${doc.file_id}`);
-    const fileJson = await fileRes.json();
-    if (!fileJson.ok) throw new Error('Cannot get file from Telegram');
-    
-    const filePath = fileJson.result.file_path;
-    const downloadRes = await fetch(`https://api.telegram.org/file/bot${TELEGRAM_TOKEN}/${filePath}`);
-    
-    const os = require('os');
-    const tempFile = path.join(os.tmpdir(), doc.file_name);
-    
-    const arrayBuffer = await downloadRes.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    fs.writeFileSync(tempFile, buffer);
-
-    try {
-      // 3. Process the file
-      const fileDateMatch = doc.file_name.match(/(\d{8})/);
-      let dateStr;
-      if (fileDateMatch) {
-          const fileDateStr = fileDateMatch[1];
-          dateStr = `${fileDateStr.slice(0,4)}-${fileDateStr.slice(4,6)}-${fileDateStr.slice(6,8)}`;
-      } else {
-          const match2 = doc.file_name.match(/(\d{1,2})\.(\d{1,2})/);
-          if (match2) {
-              dateStr = `2026-${match2[2].padStart(2, '0')}-${match2[1].padStart(2, '0')}`;
-          } else {
-              throw new Error("Tên file không chứa ngày hợp lệ.");
-          }
+      if (cb.data === 'sync_mail' && chatId) {
+        handleMailSyncTrigger(chatId);
       }
-      
-      const numInternal = 2;
-      let result;
-      // Default to new API for all requests
-      delete require.cache[require.resolve('./route_15_6_api')];
-      result = await require('./route_15_6_api').run(tempFile, storeLocations, numInternal);
-      
-      // 4. Update history
-      const wasOverwritten = historyManager.recordPlanVolume(dateStr, result.routes);
-      const emailLabel = message.from.username ? `@${message.from.username}` : 'Telegram User';
-      historyManager.recordUploadLog(`Telegram: ${emailLabel}`, doc.file_name, 'bot', dateStr);
+      return res.sendStatus(200);
+    }
 
-      // Save to latest plan
-      global.latestPlanResult = result;
-      global.latestPlanDate = dateStr;
-      fs.writeFileSync(latestPlanFile, JSON.stringify({ result, date: dateStr }));
+    const message = req.body.message;
+    if (!message) return res.sendStatus(200);
 
-      // 5. Send success message (Summary)
-      let summaryText = `✅ Đã xử lý thành công ngày ${dateStr}!\n`;
-      if (wasOverwritten) summaryText += `⚠️ (Dữ liệu cũ đã bị ghi đè)\n\n`;
-      summaryText += `📊 Thống kê:\n- Tổng Điểm Giao: ${result.totalStops}\n- Tổng Xe Điều: ${result.totalVehiclesUsed}\n- Tổng KL: ${result.totalWeight}kg\n\n`;
-      
-      if (result.provinceReport && result.provinceReport.length > 0) {
-          summaryText += `📈 Tỷ lệ hoàn thành theo tỉnh:\n`;
-          result.provinceReport.forEach(rep => {
-              summaryText += `- ${rep.province}: Đã chạy ${rep.storePercent}% số CH (${rep.activeStores}/${rep.totalStores} CH), ${rep.weightPercent}% khối lượng (${Math.round(rep.activeWeight)}/${Math.round(rep.totalWeight)} kg)\n`;
-          });
-          summaryText += `\n`;
-      }
-      
-      summaryText += `📍 CHI TIẾT LỘ TRÌNH:`;
-      await sendMsg(summaryText);
-      
-      // Send detailed routes in chunks to avoid 4096 char limit
-      let currentChunkText = '';
-      for (let i = 0; i < result.routes.length; i++) {
-         const r = result.routes[i];
-         const depot = r._depot || result.depot;
-         let routeText = `<b>🚛 Xe ${i+1} (${r.vehicleId})</b>\n`;
-         let mapUrl = `https://www.google.com/maps/dir/${depot.lat},${depot.lng}`;
-         
-         r.schedule.forEach((s) => {
-            const kl = Math.round(s.weight);
-            const cbm = Math.round(s.cbm * 10) / 10;
-            const sName = s.storeName.replace(/&/g, 'và').replace(/</g, '').replace(/>/g, '');
-            routeText += `🔹 ${s.arrivalTime} - ${sName} (${kl}kg, ${cbm}m³)\n`;
-            mapUrl += `/${s.lat},${s.lng}`;
-         });
-         
-         mapUrl += `/${depot.lat},${depot.lng}`;
-         routeText += `\n🗺 <a href="${mapUrl}">Chi tiết lộ trình</a>\n\n`;
-         
-         if ((currentChunkText + routeText).length > 3500) {
-             await sendMsg(currentChunkText, true);
-             currentChunkText = routeText;
-         } else {
-             currentChunkText += routeText;
-         }
-      }
-      if (currentChunkText) {
-          await sendMsg(currentChunkText, true);
-      }
-      
-      // 6. Send Excel file
-      const excelBuffer = generateExcelBuffer(result);
-      
-      const boundary = '----TelegramBotBoundary' + Math.random().toString(36).substring(2);
-      const chunks = [];
-      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="chat_id"\r\n\r\n${chatId}\r\n`));
-      chunks.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="document"; filename="ke_hoach_lo_trinh_${dateStr.replace(/-/g,'')}.xlsx"\r\nContent-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\r\n\r\n`));
-      chunks.push(excelBuffer);
-      chunks.push(Buffer.from(`\r\n--${boundary}--\r\n`));
-      const multipartBody = Buffer.concat(chunks);
-      
-      const sendDocRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendDocument`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': `multipart/form-data; boundary=${boundary}`,
-          'Content-Length': String(multipartBody.length)
-        },
-        body: multipartBody
-      });
-      
-      if (!sendDocRes.ok) {
-        const errText = await sendDocRes.text();
-        console.error('Telegram sendDocument failed:', errText);
-        throw new Error(`Telegram API sendDocument failed: ${errText}`);
+    const chatId = message.chat.id;
+    historyManager.saveTelegramChat(chatId);
+
+    // 2. Handle text messages & commands
+    if (message.text) {
+      const text = message.text.trim();
+      if (text.startsWith('/start') || text.startsWith('/help')) {
+        await sendTelegramMessage(
+          chatId,
+          `Xin chào! Tôi là <b>Supra Route Bot</b> 🚚\n\n` +
+          `• Bấm nút <b>"🔄 Đồng bộ kế hoạch từ Mail"</b> bên dưới để lấy file kế hoạch mới nhất từ email khách hàng lúc 12h và xuất file gán đơn.\n` +
+          `• Hoặc bạn có thể <b>gửi trực tiếp file Excel kế hoạch (.xlsx / .xlsb)</b> vào đây bất cứ lúc nào!`,
+          true,
+          MAIN_KEYBOARD
+        );
+        return res.sendStatus(200);
       }
 
-      fs.unlinkSync(tempFile);
-    } catch(err) {
-      await sendMsg(`❌ Lỗi xử lý: ${err.message}`);
-      if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+      if (text.startsWith('/force_sync') || text.startsWith('/sync_force')) {
+        await handleMailSyncTrigger(chatId, true);
+        return res.sendStatus(200);
+      }
+
+      if (text === '🔄 Đồng bộ kế hoạch từ Mail' || text.startsWith('/sync') || text.startsWith('/dongbo') || text.includes('Đồng bộ')) {
+        await handleMailSyncTrigger(chatId);
+        return res.sendStatus(200);
+      }
+    }
+
+    // 3. Handle document upload (direct Excel upload)
+    if (message.document) {
+      const doc = message.document;
+      if (!doc.file_name.endsWith('.xlsx') && !doc.file_name.endsWith('.xlsb')) {
+        return res.sendStatus(200);
+      }
+
+      // Kiểm tra trùng lặp file gửi trực tiếp
+      if (historyManager.checkIsDuplicatePlan(doc.file_name)) {
+        await sendTelegramMessage(
+          chatId,
+          `⚠️ <b>Thông báo trùng file:</b>\n` +
+          `File <code>${doc.file_name}</code> đã được xử lý trên hệ thống trước đó rồi.\n` +
+          `Bot không gửi lại file để tránh trùng lặp đơn gán!`,
+          true,
+          SYNC_INLINE_KEYBOARD
+        );
+        return res.sendStatus(200);
+      }
+
+      await sendTelegramMessage(chatId, `Đang tải và phân tích file: <code>${doc.file_name}</code>...`, true);
+
+      // Download file from Telegram
+      const fileRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/getFile?file_id=${doc.file_id}`);
+      const fileJson = await fileRes.json();
+      if (!fileJson.ok) throw new Error('Cannot get file from Telegram');
+
+      const filePath = fileJson.result.file_path;
+      const downloadRes = await fetch(`https://api.telegram.org/file/bot${TELEGRAM_TOKEN}/${filePath}`);
+
+      const tempFile = path.join(os.tmpdir(), doc.file_name);
+      const arrayBuffer = await downloadRes.arrayBuffer();
+      fs.writeFileSync(tempFile, Buffer.from(arrayBuffer));
+
+      const emailLabel = message.from && message.from.username
+        ? `@${message.from.username}`
+        : (message.from && message.from.first_name ? message.from.first_name : 'Telegram User');
+
+      try {
+        const planRes = await executePlanProcessing(tempFile, doc.file_name, `Telegram: ${emailLabel}`, chatId);
+        historyManager.markPlanSynced(doc.file_name, { date: planRes.dateStr });
+        try { fs.unlinkSync(tempFile); } catch (e) {}
+      } catch (err) {
+        console.error('Processing error:', err);
+        await sendTelegramMessage(chatId, `❌ Lỗi xử lý: ${err.message}`, false, SYNC_INLINE_KEYBOARD);
+        if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+      }
+
+      return res.sendStatus(200);
     }
 
     res.sendStatus(200);
-  } catch(e) {
+  } catch (e) {
     console.error('Webhook error:', e);
     res.sendStatus(200);
   }
@@ -531,3 +760,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+

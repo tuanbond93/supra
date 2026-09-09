@@ -61,9 +61,68 @@ function recordUploadLog(email, filename, ip, dateStr) {
     fs.writeFileSync(LOG_FILE, JSON.stringify(logs, null, 2), 'utf8');
 }
 
+const CHATS_FILE = process.env.VERCEL ? '/tmp/telegram_chats.json' : path.join(__dirname, 'telegram_chats.json');
+
+function getTelegramChats() {
+    const chats = [];
+    if (process.env.TELEGRAM_DEFAULT_CHAT_ID) {
+        chats.push(String(process.env.TELEGRAM_DEFAULT_CHAT_ID));
+    }
+    if (fs.existsSync(CHATS_FILE)) {
+        try {
+            const saved = JSON.parse(fs.readFileSync(CHATS_FILE, 'utf8'));
+            saved.forEach(id => {
+                if (!chats.includes(String(id))) chats.push(String(id));
+            });
+        } catch(e) {}
+    }
+    return chats;
+}
+
+function saveTelegramChat(chatId) {
+    if (!chatId) return;
+    const strId = String(chatId);
+    const chats = getTelegramChats();
+    if (!chats.includes(strId)) {
+        chats.push(strId);
+    }
+    fs.writeFileSync(CHATS_FILE, JSON.stringify(chats, null, 2), 'utf8');
+}
+
+const SYNC_STATE_FILE = process.env.VERCEL ? '/tmp/sync_state.json' : path.join(__dirname, 'sync_state.json');
+
+function getSyncState() {
+    if (fs.existsSync(SYNC_STATE_FILE)) {
+        try { return JSON.parse(fs.readFileSync(SYNC_STATE_FILE, 'utf8')); } catch(e) { return {}; }
+    }
+    return {};
+}
+
+function checkIsDuplicatePlan(identifier) {
+    if (!identifier) return false;
+    const state = getSyncState();
+    return !!state[identifier];
+}
+
+function markPlanSynced(identifier, meta = {}) {
+    if (!identifier) return;
+    const state = getSyncState();
+    state[identifier] = {
+        syncedAt: new Date().toISOString(),
+        ...meta
+    };
+    fs.writeFileSync(SYNC_STATE_FILE, JSON.stringify(state, null, 2), 'utf8');
+}
+
 module.exports = {
     getHistory,
     recordPlanVolume,
     getUploadLogs,
-    recordUploadLog
+    recordUploadLog,
+    getTelegramChats,
+    saveTelegramChat,
+    checkIsDuplicatePlan,
+    markPlanSynced,
+    getSyncState
 };
+
