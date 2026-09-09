@@ -130,8 +130,28 @@ async function fetchLatestPlanMail(options = {}) {
       }
 
       // Download message source
-      const downloadResult = await client.download(matchedUid);
-      const parsed = await simpleParser(downloadResult.content);
+      let messageSource = null;
+      try {
+        const messageData = await client.fetchOne(String(matchedUid), { source: true }, { uid: true });
+        if (messageData && messageData.source) {
+          messageSource = messageData.source;
+        }
+      } catch (e) {
+        console.warn('fetchOne source error, fallback to download...', e.message);
+      }
+
+      if (!messageSource) {
+        const downloadResult = await client.download(String(matchedUid), undefined, { uid: true });
+        if (downloadResult && downloadResult.content) {
+          messageSource = downloadResult.content;
+        }
+      }
+
+      if (!messageSource) {
+        throw new Error(`Không thể tải nội dung email (UID: ${matchedUid}). Vui lòng thử lại.`);
+      }
+
+      const parsed = await simpleParser(messageSource);
 
       // Look for Excel attachment (.xlsb or .xlsx)
       const validAttachments = (parsed.attachments || []).filter(att => {
